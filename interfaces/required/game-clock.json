@@ -1,0 +1,44 @@
+{
+  "id": "game-clock",
+  "type": "ae/game-clock",
+  "version": "1.0.0",
+  "notes": "What the engine needs from the game-clock component. Two clocks: action (moves, automatic steps, result pauses, rebuy offers) and level (blind or other level progression). advance is called with which clocks run since the last update; the engine decides that from pause, holds and open rebuy offers (presence and tournament). Wall times are epoch milliseconds. runs.level is false while rebuy offers are open (tournament.levelClockRuns); runs.action is false while the table is paused or held. Neither flag changes the other clock.",
+  "operations": {
+    "create": {
+      "arguments": [
+        "now:number"
+      ],
+      "returns": "ClockState"
+    },
+    "advance": {
+      "arguments": [
+        "clock",
+        "now:number",
+        "runs:{action:boolean,level:boolean}"
+      ],
+      "returns": "ClockState (adds now minus the last update to each clock that runs; never goes backwards)"
+    },
+    "reset": {
+      "arguments": [
+        "clock",
+        "now:number"
+      ],
+      "returns": "ClockState (both clocks to zero)"
+    },
+    "elapsed": {
+      "arguments": [
+        "clock",
+        "which:action|level"
+      ],
+      "returns": "number (running milliseconds)"
+    },
+    "wallAt": {
+      "arguments": [
+        "clock",
+        "which:action|level",
+        "targetMs:number"
+      ],
+      "returns": "number (epoch ms at which that clock reaches targetMs if it keeps running from the last update; never before the last update)"
+    }
+  }
+}

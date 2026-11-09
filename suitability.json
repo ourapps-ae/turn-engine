@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "jobs": [
+    "turn-engine"
+  ],
+  "profiles": [
+    {
+      "id": "any",
+      "load": {},
+      "cost": "none",
+      "regions": [
+        "any"
+      ],
+      "compliance": []
+    }
+  ],
+  "notes": "Pure library; no state of its own beyond the game state the room stores."
+}

@@ -1,0 +1,127 @@
+{
+  "id": "game-adapter",
+  "type": "ae/game-adapter",
+  "version": "1.0.0",
+  "notes": "The GameAdapter that realtime-rooms calls (14 methods, same signatures as realtime-rooms/implementation/server/adapter.ts). Built by createGameAdapter(parts, settings) where parts holds one implementation of each required interface. State is JSON-serialisable and every method is pure. Wire actions: start, addBot, kick{playerId}, leave, sitOut, return, pause, resume, cancel, newGame, rebuy{accept}, and any move game-rules.parseMove accepts. Error codes and HTTP status: badName 400, badRequest 400, roomFull 409, staleVersion 409, badToken/notYourTurn/wrongPhase/notEnoughPlayers/badAmount/badTarget/notAllowed/paused/unknownPlayer 422. A code a game reports that is not in this list is sent as notAllowed. Without a computer-players part (Parts.computers omitted) addBot is refused and no seat is filled.",
+  "settings": {
+    "decisionSeconds": "integer or null; seconds a person has to move; null reads rules-settings timing.decision_seconds, then 30",
+    "settleMs": "integer, default 4000; the table settles this long after a deal or a move before the countdown starts",
+    "staleMinutes": "integer, default 30; an idle lobby or ended table is emptied, a table paused with nobody connected is cancelled",
+    "standingsSeconds": "integer, default 20; standings stay up this long, then the room is a lobby again",
+    "lobbyDropSeconds": "integer, default 60; a lobby seat whose person has not been heard from this long is given up"
+  },
+  "types": {
+    "Result<T>": "{ok:true,value:T}|{ok:false,error:{code:string,message:string,status:400|409|422}}",
+    "Deps": "{now:()=>number,rng:()=>number,newId:()=>string}",
+    "Actor": "{id:string,role:player|spectator|display}",
+    "Presence": "{type:request-seen,id}|{type:live-members,ids}|{type:away,id}|{type:last-connection-close,id,deliberate}",
+    "View": "{version,roomId,gameNumber,you,display,status,phase:lobby|acting|auto|over|offers|completed|cancelled,pauseReasons,holds,hostId,players:PlayerRow[],round:RoundView|null,game:unknown|null,lastResult:unknown|null,clock:unknown|null,rebuyOffers:{playerId,remainingMs}[],winnerId,history,legal:Legal,prompt,promptKey,promptArgs}",
+    "PlayerRow": "{id,name,seat,isBot,isHost,stack,status:in|out,place,connected,sittingOut,rebuysUsed,game:Record|null}",
+    "RoundView": "{no,level,stage:acting|auto|over,actorId,remainingMs,settleMs,event,lastActorId}",
+    "Legal": "{start,addBot,kick,leave,sitOut,return,rebuy,pause,resume,cancel,newGame,game:unknown}"
+  },
+  "operations": {
+    "create": {
+      "arguments": [
+        "now:number"
+      ],
+      "returns": "EngineState (a lobby)"
+    },
+    "restore": {
+      "arguments": [
+        "saved:unknown",
+        "schema:number"
+      ],
+      "returns": "EngineState; throws Error('Unsupported game state.') unless schema is 1 and the shape is valid"
+    },
+    "options": {
+      "arguments": [
+        "input:unknown"
+      ],
+      "returns": "Result<Record<string,boolean>> (one boolean per game-rules.optionNames entry; true or \"1\" switches on)"
+    },
+    "members": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "{id,name}[] in seat order"
+    },
+    "summary": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "{status,playerCount,names}"
+    },
+    "clearSpectators": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "boolean (an empty lobby)"
+    },
+    "join": {
+      "arguments": [
+        "state",
+        "id:string",
+        "name:string",
+        "rejoining:boolean",
+        "deps:Deps"
+      ],
+      "returns": "Result<{state,role:player|spectator}> (rejoining: marks seen and, in a game, returns from sitting out; a new person in a lobby sits; in a game they watch)"
+    },
+    "parseAction": {
+      "arguments": [
+        "input:unknown"
+      ],
+      "returns": "Result<{action,requiresVersion:boolean,leaves:boolean}> (badRequest for anything malformed)"
+    },
+    "apply": {
+      "arguments": [
+        "state",
+        "actor:Actor",
+        "action",
+        "deps:Deps"
+      ],
+      "returns": "Result<state> (displays may do nothing; spectators may only leave or cancel)"
+    },
+    "presence": {
+      "arguments": [
+        "state",
+        "event:Presence",
+        "deps:Deps"
+      ],
+      "returns": "{state,changed:boolean}"
+    },
+    "connection": {
+      "arguments": [
+        "state",
+        "actor:Actor",
+        "message:unknown",
+        "options",
+        "deps:Deps"
+      ],
+      "returns": "Result<{state,options,changed:boolean}> (messages: {type:'hold',kind:'look'|'learn'|null}, {type:'hello',hold}, and {type:<option name>,on:boolean})"
+    },
+    "advance": {
+      "arguments": [
+        "state",
+        "deps:Deps"
+      ],
+      "returns": "{state,changed:boolean} (clocks, presence, everything due, then due computer moves, up to 60 in a row)"
+    },
+    "nextWake": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "number|null (wall time)"
+    },
+    "view": {
+      "arguments": [
+        "state",
+        "actor:Actor|null",
+        "options",
+        "context:{version:number,roomId:string}"
+      ],
+      "returns": "View (actor null or a display sees what everyone sees)"
+    }
+  }
+}

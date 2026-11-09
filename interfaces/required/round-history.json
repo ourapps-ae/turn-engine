@@ -1,0 +1,25 @@
+{
+  "id": "round-history",
+  "type": "ae/round-history",
+  "version": "1.0.0",
+  "notes": "What the engine needs from the round-history component. Entries are plain objects {no, level, voided, ...game fields}; the component may keep only the most recent entries. A voided round is pushed as an entry with voided:true. The game's historyEntry (game-rules.outcome) carries the fields a history keeps, such as winners:{playerId,amount}[].",
+  "operations": {
+    "create": {
+      "arguments": [],
+      "returns": "HistoryState"
+    },
+    "push": {
+      "arguments": [
+        "history",
+        "entry:Record<string,unknown>"
+      ],
+      "returns": "HistoryState"
+    },
+    "list": {
+      "arguments": [
+        "history"
+      ],
+      "returns": "Record<string,unknown>[] oldest first"
+    }
+  }
+}

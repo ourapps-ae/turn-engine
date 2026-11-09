@@ -1,0 +1,113 @@
+{
+  "id": "game-rules",
+  "type": "ae/game-rules",
+  "version": "1.0.0",
+  "notes": "What the turn engine needs from a game (holdem-rules provides it). A game is a pure state machine over a round: round values are opaque to the engine and JSON-serialisable. The chip ledger is passed in and returned so a game moves chips through the chip-ledger component, not its own counters. Move values are the game's own.",
+  "types": {
+    "RoundPlayer": "{id:string,seat:number}",
+    "RoundPhase": "{stage:acting|auto|over,actorId:string|null,settleMs:number,autoDelayMs:number|null,event:string|null,lastActorId:string|null}",
+    "RoundOutcome": "{holdMs:number,voided:boolean,result:unknown,historyEntry:Record<string,unknown>}",
+    "HiddenRecord": "{ownerId:string|null,open:Record,hidden:Record,revealed:Record<string,true|number[]>}  (private-views redacts these)",
+    "Moved": "{ok:true,round,ledger}|{ok:false,code:badRequest|notAllowed|badAmount|notYourTurn|wrongPhase|notEnoughPlayers|unknownPlayer}  (a code outside the engine's error set reaches the client as notAllowed)"
+  },
+  "operations": {
+    "optionNames": {
+      "arguments": [],
+      "returns": "string[] (readable property: option names a client may switch, such as odds)"
+    },
+    "newRound": {
+      "arguments": [
+        "input:{no:number,level:number,players:RoundPlayer[],carry:unknown|null}",
+        "ledger",
+        "rng:()=>number"
+      ],
+      "returns": "{round,ledger,carry} (players are those still in, in seat order; carry is what the previous call returned, so a game can move a dealer button; the game deals, posts forced bets etc. through the ledger)"
+    },
+    "phase": {
+      "arguments": [
+        "round",
+        "pacing:{settleMs:number}"
+      ],
+      "returns": "RoundPhase (acting: one player to move, settleMs is pacing.settleMs plus any time the game needs; auto: the table advances by itself after autoDelayMs; over: finished)"
+    },
+    "parseMove": {
+      "arguments": [
+        "input:unknown"
+      ],
+      "returns": "{ok:true,move,needsTurn:boolean}|{ok:false} (needsTurn false for moves allowed out of turn, such as showing cards after a round)"
+    },
+    "act": {
+      "arguments": [
+        "round",
+        "ledger",
+        "playerId:string",
+        "move",
+        "context:{auto:boolean}"
+      ],
+      "returns": "Moved (auto true when the engine moves for an absent or timed-out player)"
+    },
+    "defaultMove": {
+      "arguments": [
+        "round",
+        "playerId:string"
+      ],
+      "returns": "move (what to play for a player who timed out or is away; must always be accepted by act)"
+    },
+    "step": {
+      "arguments": [
+        "round",
+        "ledger"
+      ],
+      "returns": "{round,ledger} (one automatic step: deal the next card, pay out, ...)"
+    },
+    "outcome": {
+      "arguments": [
+        "round"
+      ],
+      "returns": "RoundOutcome|null (non-null once phase is over)"
+    },
+    "voidRound": {
+      "arguments": [
+        "round",
+        "ledger"
+      ],
+      "returns": "{round,ledger,outcome} (cancelled mid-round: give contributed chips back)"
+    },
+    "observation": {
+      "arguments": [
+        "round",
+        "playerId:string"
+      ],
+      "returns": "unknown (what that player may know; passed to the player-strategy)"
+    },
+    "records": {
+      "arguments": [
+        "round"
+      ],
+      "returns": "HiddenRecord[]"
+    },
+    "publicView": {
+      "arguments": [
+        "round",
+        "viewerId:string|null",
+        "options:Record<string,boolean>"
+      ],
+      "returns": "unknown (the game's own view for one viewer, no hidden records)"
+    },
+    "legal": {
+      "arguments": [
+        "round",
+        "viewerId:string",
+        "context:{paused:boolean}"
+      ],
+      "returns": "unknown (that viewer's legal moves)"
+    },
+    "prompt": {
+      "arguments": [
+        "round",
+        "viewerId:string|null"
+      ],
+      "returns": "{key,args,text}|null (null: the engine uses a generic prompt)"
+    }
+  }
+}

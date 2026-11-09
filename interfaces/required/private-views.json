@@ -1,0 +1,15 @@
+{
+  "id": "private-views",
+  "type": "ae/private-views",
+  "version": "1.0.0",
+  "notes": "What the engine needs from the private-views component: per-viewer redaction of hidden game facts. Each record has an owner, open facts everyone sees, hidden facts only the owner sees until revealed, and a revealed map saying which hidden keys (true) or which indexes of an array (number[]) are now public.",
+  "operations": {
+    "redact": {
+      "arguments": [
+        "viewerId:string|null",
+        "records:HiddenRecord[]"
+      ],
+      "returns": "Record<string,unknown>[] (one per record, same order: open facts plus each hidden key as its value if the viewer owns it or it is revealed, else null; a null viewer is a display and sees only revealed)"
+    }
+  }
+}

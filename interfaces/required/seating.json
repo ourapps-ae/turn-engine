@@ -1,0 +1,145 @@
+{
+  "id": "seating",
+  "type": "ae/seating",
+  "version": "1.0.0",
+  "notes": "The subset of the seating component's provided interface (components/seating/interfaces/seating.json) the engine calls. Seat state is opaque and lives in the engine state under `seats`; the engine also reads seats.hostId only through hostOf.",
+  "operations": {
+    "create": {
+      "arguments": [],
+      "returns": "SeatingState"
+    },
+    "validName": {
+      "arguments": [
+        "name:unknown"
+      ],
+      "returns": "boolean"
+    },
+    "list": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "Seat[] in seat order"
+    },
+    "find": {
+      "arguments": [
+        "state",
+        "id"
+      ],
+      "returns": "Seat|undefined"
+    },
+    "count": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "number"
+    },
+    "people": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "Seat[]"
+    },
+    "isFull": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "boolean"
+    },
+    "isEnough": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "boolean"
+    },
+    "minimumPlayers": {
+      "arguments": [],
+      "returns": "number"
+    },
+    "hostOf": {
+      "arguments": [
+        "state"
+      ],
+      "returns": "string|null"
+    },
+    "join": {
+      "arguments": [
+        "state",
+        "id",
+        "name",
+        "options:{computer?:boolean}"
+      ],
+      "returns": "Outcome"
+    },
+    "setHost": {
+      "arguments": [
+        "state",
+        "id|null"
+      ],
+      "returns": "SeatingState"
+    },
+    "leave": {
+      "arguments": [
+        "state",
+        "id"
+      ],
+      "returns": "SeatingState"
+    },
+    "leaveRunning": {
+      "arguments": [
+        "state",
+        "id"
+      ],
+      "returns": "SeatingState"
+    },
+    "mayReturn": {
+      "arguments": [
+        "state",
+        "id"
+      ],
+      "returns": "boolean"
+    },
+    "returned": {
+      "arguments": [
+        "state",
+        "id"
+      ],
+      "returns": "SeatingState"
+    },
+    "remove": {
+      "arguments": [
+        "state",
+        "byId",
+        "targetId"
+      ],
+      "returns": "Outcome"
+    },
+    "canStart": {
+      "arguments": [
+        "state",
+        "byId"
+      ],
+      "returns": "Outcome"
+    },
+    "canAddComputer": {
+      "arguments": [
+        "state",
+        "byId"
+      ],
+      "returns": "Outcome"
+    },
+    "assign": {
+      "arguments": [
+        "state",
+        "rng"
+      ],
+      "returns": "SeatingState"
+    },
+    "retain": {
+      "arguments": [
+        "state",
+        "keep:(seat)=>boolean"
+      ],
+      "returns": "SeatingState (new lobby: renumbered, host and left cleared)"
+    }
+  }
+}

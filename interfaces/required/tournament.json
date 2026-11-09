@@ -1,0 +1,161 @@
+{
+  "id": "tournament",
+  "type": "ae/tournament",
+  "version": "1.0.0",
+  "notes": "The subset of the tournament component's provided interface (components/tournament/interfaces/tournament.json) the engine calls. The chip ledger lives inside the tournament state; the engine passes it to the game and puts the result back with withLedger.",
+  "operations": {
+    "create": {
+      "arguments": [],
+      "returns": "TournamentState"
+    },
+    "start": {
+      "arguments": [
+        "seats"
+      ],
+      "returns": "TournamentState"
+    },
+    "activeIds": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "string[]"
+    },
+    "isActive": {
+      "arguments": [
+        "t",
+        "id"
+      ],
+      "returns": "boolean"
+    },
+    "balance": {
+      "arguments": [
+        "t",
+        "id"
+      ],
+      "returns": "number"
+    },
+    "rebuysUsed": {
+      "arguments": [
+        "t",
+        "id"
+      ],
+      "returns": "number"
+    },
+    "place": {
+      "arguments": [
+        "t",
+        "id"
+      ],
+      "returns": "number|null"
+    },
+    "ledger": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "unknown"
+    },
+    "withLedger": {
+      "arguments": [
+        "t",
+        "ledger"
+      ],
+      "returns": "TournamentState"
+    },
+    "levelAt": {
+      "arguments": [
+        "levelClockMs"
+      ],
+      "returns": "number"
+    },
+    "clockInfo": {
+      "arguments": [
+        "levelClockMs"
+      ],
+      "returns": "unknown"
+    },
+    "rebuyStack": {
+      "arguments": [],
+      "returns": "number"
+    },
+    "roundStarted": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "TournamentState"
+    },
+    "roundSettled": {
+      "arguments": [
+        "t",
+        "input:{level,actionMs,seats,computerDelayMs}"
+      ],
+      "returns": "TournamentState"
+    },
+    "offers": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "{playerId,deadline,autoAt}[]"
+    },
+    "hasOffers": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "boolean"
+    },
+    "levelClockRuns": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "boolean (false while rebuy offers are open; the engine passes it as runs.level to game-clock advance)"
+    },
+    "offerFor": {
+      "arguments": [
+        "t",
+        "id"
+      ],
+      "returns": "offer|undefined"
+    },
+    "dueOffer": {
+      "arguments": [
+        "t",
+        "actionMs",
+        "seats"
+      ],
+      "returns": "{playerId,accept}|null"
+    },
+    "nextOfferDue": {
+      "arguments": [
+        "t",
+        "seats"
+      ],
+      "returns": "number|null"
+    },
+    "resolve": {
+      "arguments": [
+        "t",
+        "id",
+        "accept"
+      ],
+      "returns": "{ok:true,state}|{ok:false,code}"
+    },
+    "conclude": {
+      "arguments": [
+        "t",
+        "seats"
+      ],
+      "returns": "{state,outcome:continue|completed,winnerId}"
+    },
+    "cancel": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "TournamentState"
+    },
+    "winner": {
+      "arguments": [
+        "t"
+      ],
+      "returns": "string|null"
+    }
+  }
+}

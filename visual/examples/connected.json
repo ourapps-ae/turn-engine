@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 1,
+  "id": "turn-engine-connected",
+  "title": "Turn engine: connected consumer",
+  "status": "example",
+  "view": "component",
+  "focus": "component",
+  "definitions": [
+    {
+      "id": "ourapps-ae.turn-engine",
+      "name": "Turn engine",
+      "kind": "component",
+      "status": "example",
+      "package": "ourapps-ae/turn-engine",
+      "version": "0.4.0",
+      "ports": [
+        {
+          "id": "game-rules",
+          "name": "Game rules",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/game-rules",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "seating",
+          "name": "Seating",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/seating",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "game-clock",
+          "name": "Game clock",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/game-clock",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "private-views",
+          "name": "Private views",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/private-views",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "presence",
+          "name": "Presence",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/presence",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "tournament",
+          "name": "Tournament",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/tournament",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "computer-players",
+          "name": "Computer players",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/computer-players",
+          "version": "1.0.0",
+          "required": false,
+          "cardinality": "one"
+        },
+        {
+          "id": "round-history",
+          "name": "Round history",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/round-history",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "rules-settings",
+          "name": "Rules settings",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/rules-settings",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "game-adapter",
+          "name": "Game adapter",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/game-adapter",
+          "version": "1.0.0"
+        }
+      ],
+      "settings": [
+        {
+          "id": "decisionSeconds",
+          "name": "Decisionseconds",
+          "type": "number",
+          "required": false,
+          "secret": false
+        },
+        {
+          "id": "settleMs",
+          "name": "Settlems",
+          "type": "number",
+          "required": false,
+          "secret": false,
+          "default": 4000
+        },
+        {
+          "id": "staleMinutes",
+          "name": "Staleminutes",
+          "type": "number",
+          "required": false,
+          "secret": false,
+          "default": 30
+        },
+        {
+          "id": "standingsSeconds",
+          "name": "Standingsseconds",
+          "type": "number",
+          "required": false,
+          "secret": false,
+          "default": 20
+        },
+        {
+          "id": "lobbyDropSeconds",
+          "name": "Lobbydropseconds",
+          "type": "number",
+          "required": false,
+          "secret": false,
+          "default": 60
+        }
+      ]
+    },
+    {
+      "id": "consumer",
+      "name": "Example application consumer",
+      "kind": "application",
+      "status": "example",
+      "revision": "0.1.0",
+      "ports": [
+        {
+          "id": "game-adapter",
+          "name": "Game adapter",
+          "direction": "input",
+          "kind": "interface",
+          "type": "ae/game-adapter",
+          "version": "1.0.0",
+          "required": true,
+          "cardinality": "one"
+        },
+        {
+          "id": "game-rules",
+          "name": "Game rules",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/game-rules",
+          "version": "1.0.0"
+        },
+        {
+          "id": "seating",
+          "name": "Seating",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/seating",
+          "version": "1.0.0"
+        },
+        {
+          "id": "game-clock",
+          "name": "Game clock",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/game-clock",
+          "version": "1.0.0"
+        },
+        {
+          "id": "private-views",
+          "name": "Private views",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/private-views",
+          "version": "1.0.0"
+        },
+        {
+          "id": "presence",
+          "name": "Presence",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/presence",
+          "version": "1.0.0"
+        },
+        {
+          "id": "tournament",
+          "name": "Tournament",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/tournament",
+          "version": "1.0.0"
+        },
+        {
+          "id": "computer-players",
+          "name": "Computer players",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/computer-players",
+          "version": "1.0.0"
+        },
+        {
+          "id": "round-history",
+          "name": "Round history",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/round-history",
+          "version": "1.0.0"
+        },
+        {
+          "id": "rules-settings",
+          "name": "Rules settings",
+          "direction": "output",
+          "kind": "interface",
+          "type": "ae/rules-settings",
+          "version": "1.0.0"
+        }
+      ],
+      "settings": []
+    }
+  ],
+  "instances": [
+    {
+      "id": "component",
+      "name": "Turn engine",
+      "definition": "ourapps-ae.turn-engine",
+      "configuration": {}
+    },
+    {
+      "id": "consumer",
+      "name": "Example consumer",
+      "definition": "consumer",
+      "configuration": {}
+    }
+  ],
+  "connections": [
+    {
+      "source": {
+        "instance": "component",
+        "port": "game-adapter"
+      },
+      "target": {
+        "instance": "consumer",
+        "port": "game-adapter"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "game-rules"
+      },
+      "target": {
+        "instance": "component",
+        "port": "game-rules"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "seating"
+      },
+      "target": {
+        "instance": "component",
+        "port": "seating"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "game-clock"
+      },
+      "target": {
+        "instance": "component",
+        "port": "game-clock"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "private-views"
+      },
+      "target": {
+        "instance": "component",
+        "port": "private-views"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "presence"
+      },
+      "target": {
+        "instance": "component",
+        "port": "presence"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "tournament"
+      },
+      "target": {
+        "instance": "component",
+        "port": "tournament"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "computer-players"
+      },
+      "target": {
+        "instance": "component",
+        "port": "computer-players"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "round-history"
+      },
+      "target": {
+        "instance": "component",
+        "port": "round-history"
+      }
+    },
+    {
+      "source": {
+        "instance": "consumer",
+        "port": "rules-settings"
+      },
+      "target": {
+        "instance": "component",
+        "port": "rules-settings"
+      }
+    }
+  ]
+}

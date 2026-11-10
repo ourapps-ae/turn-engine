@@ -1,315 +1,30 @@
 {
-  "format": 1,
-  "kind": "component",
-  "identity": {
-    "name": "ourapps-ae/turn-engine",
-    "version": "0.4.0",
-    "sourceRevision": "19905b75dbea89fbfd424d67fe26c81aaed0e018",
-    "sourceTreeDigest": "0000000000000000000000000000000000000000000000000000000000000000",
-    "licenceStatus": "deferred"
-  },
-  "facilities": [
-    {
-      "id": "lifecycle",
-      "description": "Lobby, start, round cycle, rebuy offers, completion, cancellation and a new lobby"
-    },
-    {
-      "id": "checked-actions",
-      "description": "Every wire action checked with an error code"
-    },
-    {
-      "id": "turn-order",
-      "description": "Whose turn, settle time, decision countdown, acting for absent players, computer moves"
-    },
-    {
-      "id": "scheduled-steps",
-      "description": "advance, due moves, nextWake"
-    },
-    {
-      "id": "game-adapter",
-      "description": "The 14-method GameAdapter for realtime-rooms, plus per-viewer views, legal actions and prompts"
-    }
-  ],
-  "documents": {
-    "contract": "CONTRACT.md",
-    "interfaces": [
-      "interfaces/game-adapter.json",
-      "interfaces/required/computer-players.json",
-      "interfaces/required/game-clock.json",
-      "interfaces/required/game-rules.json",
-      "interfaces/required/presence.json",
-      "interfaces/required/private-views.json",
-      "interfaces/required/round-history.json",
-      "interfaces/required/rules-settings.json",
-      "interfaces/required/seating.json",
-      "interfaces/required/tournament.json",
-      "suitability.json"
-    ],
-    "examples": [
-      "examples/consumer.ts"
-    ],
-    "licenceNotice": "LICENCE"
-  },
-  "collect": [
-    {
-      "id": "decisionSeconds",
-      "type": "integer",
-      "grammar": "integer",
-      "required": false,
-      "secret": false
-    },
-    {
-      "id": "settleMs",
-      "type": "integer",
-      "grammar": "integer",
-      "required": false,
-      "secret": false,
-      "default": 4000
-    },
-    {
-      "id": "staleMinutes",
-      "type": "integer",
-      "grammar": "integer",
-      "required": false,
-      "secret": false,
-      "default": 30
-    },
-    {
-      "id": "standingsSeconds",
-      "type": "integer",
-      "grammar": "integer",
-      "required": false,
-      "secret": false,
-      "default": 20
-    },
-    {
-      "id": "lobbyDropSeconds",
-      "type": "integer",
-      "grammar": "integer",
-      "required": false,
-      "secret": false,
-      "default": 60
-    }
-  ],
-  "files": [
-    {
-      "path": "CONTRACT.md",
-      "executable": false
-    },
-    {
-      "path": "INSTRUCTIONS.md",
-      "executable": false
-    },
-    {
-      "path": "LICENCE",
-      "executable": false
-    },
-    {
-      "path": "SOURCE.md",
-      "executable": false
-    },
-    {
-      "path": "examples/consumer.ts",
-      "executable": false
-    },
-    {
-      "path": "implementation/server/adapter.ts",
-      "executable": false
-    },
-    {
-      "path": "implementation/server/engine.ts",
-      "executable": false
-    },
-    {
-      "path": "implementation/server/no-computers.ts",
-      "executable": false
-    },
-    {
-      "path": "implementation/server/parts.ts",
-      "executable": false
-    },
-    {
-      "path": "interfaces/game-adapter.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/computer-players.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/game-clock.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/game-rules.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/presence.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/private-views.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/round-history.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/rules-settings.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/seating.json",
-      "executable": false
-    },
-    {
-      "path": "interfaces/required/tournament.json",
-      "executable": false
-    },
-    {
-      "path": "suitability.json",
-      "executable": false
-    },
-    {
-      "path": "tests/fakes/parts.ts",
-      "executable": false
-    },
-    {
-      "path": "tests/web.test.ts",
-      "executable": false
-    },
-    {
-      "path": "tools.lock.json",
-      "executable": false
-    },
-    {
-      "path": "visual/definition.json",
-      "executable": false
-    },
-    {
-      "path": "visual/examples/connected.json",
-      "executable": false
-    },
-    {
-      "path": "visual/output/connected.png",
-      "executable": false
-    },
-    {
-      "path": "visual/output/connected.svg",
-      "executable": false
-    },
-    {
-      "path": "visual/output/description.md",
-      "executable": false
-    }
-  ],
   "artefacts": [
     {
-      "source": "implementation/server/adapter.ts",
       "destination": "components/turn-engine/server/adapter.ts",
-      "template": false,
-      "executable": false
+      "executable": false,
+      "source": "implementation/server/adapter.ts",
+      "template": false
     },
     {
-      "source": "implementation/server/engine.ts",
       "destination": "components/turn-engine/server/engine.ts",
-      "template": false,
-      "executable": false
+      "executable": false,
+      "source": "implementation/server/engine.ts",
+      "template": false
     },
     {
-      "source": "implementation/server/no-computers.ts",
       "destination": "components/turn-engine/server/no-computers.ts",
-      "template": false,
-      "executable": false
+      "executable": false,
+      "source": "implementation/server/no-computers.ts",
+      "template": false
     },
     {
-      "source": "implementation/server/parts.ts",
       "destination": "components/turn-engine/server/parts.ts",
-      "template": false,
-      "executable": false
+      "executable": false,
+      "source": "implementation/server/parts.ts",
+      "template": false
     }
   ],
-  "dependencies": [],
-  "provides": [
-    {
-      "id": "game-adapter",
-      "type": "ae/game-adapter",
-      "version": "1.0.0",
-      "path": "interfaces/game-adapter.json"
-    }
-  ],
-  "requires": [
-    {
-      "id": "game-rules",
-      "type": "ae/game-rules",
-      "version": "1.0.0",
-      "path": "interfaces/required/game-rules.json"
-    },
-    {
-      "id": "seating",
-      "type": "ae/seating",
-      "version": "1.0.0",
-      "path": "interfaces/required/seating.json"
-    },
-    {
-      "id": "game-clock",
-      "type": "ae/game-clock",
-      "version": "1.0.0",
-      "path": "interfaces/required/game-clock.json"
-    },
-    {
-      "id": "private-views",
-      "type": "ae/private-views",
-      "version": "1.0.0",
-      "path": "interfaces/required/private-views.json"
-    },
-    {
-      "id": "presence",
-      "type": "ae/presence",
-      "version": "1.0.0",
-      "path": "interfaces/required/presence.json"
-    },
-    {
-      "id": "tournament",
-      "type": "ae/tournament",
-      "version": "1.0.0",
-      "path": "interfaces/required/tournament.json"
-    },
-    {
-      "id": "computer-players",
-      "type": "ae/computer-players",
-      "version": "1.0.0",
-      "path": "interfaces/required/computer-players.json",
-      "optional": true
-    },
-    {
-      "id": "round-history",
-      "type": "ae/round-history",
-      "version": "1.0.0",
-      "path": "interfaces/required/round-history.json"
-    },
-    {
-      "id": "rules-settings",
-      "type": "ae/rules-settings",
-      "version": "1.0.0",
-      "path": "interfaces/required/rules-settings.json"
-    }
-  ],
-  "visual": {
-    "definition": "visual/definition.json",
-    "examples": [
-      "visual/examples/connected.json"
-    ],
-    "outputs": [
-      "visual/output/connected.svg",
-      "visual/output/connected.png"
-    ],
-    "descriptions": [
-      "visual/output/description.md"
-    ]
-  },
   "capabilities": {
     "hosts": [],
     "secrets": [],
@@ -320,41 +35,330 @@
       "components/turn-engine/server/parts.ts"
     ]
   },
+  "collect": [
+    {
+      "grammar": "integer",
+      "id": "decisionSeconds",
+      "required": false,
+      "secret": false,
+      "type": "integer"
+    },
+    {
+      "default": 4000,
+      "grammar": "integer",
+      "id": "settleMs",
+      "required": false,
+      "secret": false,
+      "type": "integer"
+    },
+    {
+      "default": 30,
+      "grammar": "integer",
+      "id": "staleMinutes",
+      "required": false,
+      "secret": false,
+      "type": "integer"
+    },
+    {
+      "default": 20,
+      "grammar": "integer",
+      "id": "standingsSeconds",
+      "required": false,
+      "secret": false,
+      "type": "integer"
+    },
+    {
+      "default": 60,
+      "grammar": "integer",
+      "id": "lobbyDropSeconds",
+      "required": false,
+      "secret": false,
+      "type": "integer"
+    }
+  ],
+  "dependencies": [],
+  "documents": {
+    "contract": "CONTRACT.md",
+    "examples": [
+      "examples/consumer.ts"
+    ],
+    "interfaces": [
+      "interfaces/game-adapter.json",
+      "interfaces/required-computer-players.json",
+      "interfaces/required-game-clock.json",
+      "interfaces/required-game-rules.json",
+      "interfaces/required-presence.json",
+      "interfaces/required-private-views.json",
+      "interfaces/required-round-history.json",
+      "interfaces/required-rules-settings.json",
+      "interfaces/required-seating.json",
+      "interfaces/required-tournament.json",
+      "suitability.json"
+    ],
+    "licenceNotice": "LICENCE"
+  },
+  "facilities": [
+    {
+      "description": "Lobby, start, round cycle, rebuy offers, completion, cancellation and a new lobby",
+      "id": "lifecycle"
+    },
+    {
+      "description": "Every wire action checked with an error code",
+      "id": "checked-actions"
+    },
+    {
+      "description": "Whose turn, settle time, decision countdown, acting for absent players, computer moves",
+      "id": "turn-order"
+    },
+    {
+      "description": "advance, due moves, nextWake",
+      "id": "scheduled-steps"
+    },
+    {
+      "description": "The 14-method GameAdapter for realtime-rooms, plus per-viewer views, legal actions and prompts",
+      "id": "game-adapter"
+    }
+  ],
+  "files": [
+    {
+      "executable": false,
+      "path": "CONTRACT.md"
+    },
+    {
+      "executable": false,
+      "path": "INSTRUCTIONS.md"
+    },
+    {
+      "executable": false,
+      "path": "LICENCE"
+    },
+    {
+      "executable": false,
+      "path": "NOTICE"
+    },
+    {
+      "executable": false,
+      "path": "SOURCE.md"
+    },
+    {
+      "executable": false,
+      "path": "examples/consumer.ts"
+    },
+    {
+      "executable": false,
+      "path": "implementation/server/adapter.ts"
+    },
+    {
+      "executable": false,
+      "path": "implementation/server/engine.ts"
+    },
+    {
+      "executable": false,
+      "path": "implementation/server/no-computers.ts"
+    },
+    {
+      "executable": false,
+      "path": "implementation/server/parts.ts"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/game-adapter.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-computer-players.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-game-clock.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-game-rules.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-presence.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-private-views.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-round-history.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-rules-settings.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-seating.json"
+    },
+    {
+      "executable": false,
+      "path": "interfaces/required-tournament.json"
+    },
+    {
+      "executable": false,
+      "path": "suitability.json"
+    },
+    {
+      "executable": false,
+      "path": "tests/fakes/parts.ts"
+    },
+    {
+      "executable": false,
+      "path": "tests/web.test.ts"
+    },
+    {
+      "executable": false,
+      "path": "tools.lock.json"
+    },
+    {
+      "executable": false,
+      "path": "visual/definition.json"
+    },
+    {
+      "executable": false,
+      "path": "visual/examples/connected.json"
+    },
+    {
+      "executable": false,
+      "path": "visual/output/connected.png"
+    },
+    {
+      "executable": false,
+      "path": "visual/output/connected.svg"
+    },
+    {
+      "executable": false,
+      "path": "visual/output/description.md"
+    }
+  ],
+  "format": 1,
+  "identity": {
+    "licence": "Apache-2.0",
+    "name": "ourapps-ae/turn-engine",
+    "sourceRevision": "19905b75dbea89fbfd424d67fe26c81aaed0e018",
+    "sourceTreeDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "version": "0.5.0"
+  },
   "infrastructure": {
     "accounts": [],
     "costStatus": "unmeasured",
     "deployedReason": "No deployed service; injected resources and local library functions only."
   },
+  "kind": "component",
+  "provides": [
+    {
+      "id": "game-adapter",
+      "path": "interfaces/game-adapter.json",
+      "type": "ae/game-adapter",
+      "version": "1.0.0"
+    }
+  ],
+  "requires": [
+    {
+      "id": "game-rules",
+      "path": "interfaces/required-game-rules.json",
+      "type": "ae/game-rules",
+      "version": "1.0.0"
+    },
+    {
+      "id": "seating",
+      "path": "interfaces/required-seating.json",
+      "type": "ae/seating",
+      "version": "1.0.0"
+    },
+    {
+      "id": "game-clock",
+      "path": "interfaces/required-game-clock.json",
+      "type": "ae/game-clock",
+      "version": "1.0.0"
+    },
+    {
+      "id": "private-views",
+      "path": "interfaces/required-private-views.json",
+      "type": "ae/private-views",
+      "version": "1.0.0"
+    },
+    {
+      "id": "presence",
+      "path": "interfaces/required-presence.json",
+      "type": "ae/presence",
+      "version": "1.0.0"
+    },
+    {
+      "id": "tournament",
+      "path": "interfaces/required-tournament.json",
+      "type": "ae/tournament",
+      "version": "1.0.0"
+    },
+    {
+      "id": "computer-players",
+      "optional": true,
+      "path": "interfaces/required-computer-players.json",
+      "type": "ae/computer-players",
+      "version": "1.0.0"
+    },
+    {
+      "id": "round-history",
+      "path": "interfaces/required-round-history.json",
+      "type": "ae/round-history",
+      "version": "1.0.0"
+    },
+    {
+      "id": "rules-settings",
+      "path": "interfaces/required-rules-settings.json",
+      "type": "ae/rules-settings",
+      "version": "1.0.0"
+    }
+  ],
+  "upgrade": {
+    "migration": "files-only",
+    "policy": "patch"
+  },
   "verification": [
     {
-      "id": "web",
-      "root": "package",
       "argv": [
         "node",
         "--test",
         "tests/web.test.ts"
       ],
       "cwd": ".",
-      "prepare": [],
-      "tools": {
-        "node": "26.5.0"
-      },
+      "expectedExit": 0,
       "fixtures": [
         "tests/fakes/parts.ts",
         "examples/consumer.ts"
       ],
+      "id": "web",
       "locks": [
         "tools.lock.json"
       ],
       "network": false,
-      "timeoutSeconds": 120,
-      "expectedExit": 0,
+      "prepare": [],
+      "requirements": [],
+      "root": "package",
       "scope": "required-local",
-      "requirements": []
+      "timeoutSeconds": 120,
+      "tools": {
+        "node": "26.5.0"
+      }
     }
   ],
-  "upgrade": {
-    "policy": "patch",
-    "migration": "files-only"
+  "visual": {
+    "definition": "visual/definition.json",
+    "descriptions": [
+      "visual/output/description.md"
+    ],
+    "examples": [
+      "visual/examples/connected.json"
+    ],
+    "outputs": [
+      "visual/output/connected.svg",
+      "visual/output/connected.png"
+    ]
   }
 }

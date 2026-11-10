@@ -1,6 +1,6 @@
 // Not packaged. Finds the REAL implementation of every interface the turn engine requires, in the
 // sibling components (../<component>/implementation/server/*.ts), and reports which declared
-// operations (interfaces/required/<port>.json) each one has.
+// operations (the Parts schema of interfaces/game-adapter.json) each one has.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -11,9 +11,20 @@ export const COMPONENTS = join(here, "..", "..");
 export type Namespace = Record<string, unknown>;
 export type Match = { component: string; port: string; part: any | null; found: boolean; missing: string[]; via: string; note: string; operations: string[] };
 
+// The member of `Parts` (components.schemas.Parts in interfaces/game-adapter.json) that each required port fills.
+const PART_OF_PORT: Record<string, string> = {
+  "game-rules": "rules", seating: "seating", "game-clock": "clock", "private-views": "views", presence: "presence",
+  tournament: "tournament", "computer-players": "computers", "round-history": "history", "rules-settings": "settings",
+};
+
+// The members the engine calls on a port's part, as its OpenRPC document declares them.
 export function declaredOperations(port: string): string[] {
-  const file = join(here, "..", "interfaces", "required", `${port}.json`);
-  return Object.keys(JSON.parse(readFileSync(file, "utf8")).operations);
+  const document = JSON.parse(readFileSync(join(here, "..", "interfaces", "game-adapter.json"), "utf8"));
+  const schemas = document.components.schemas;
+  let part = schemas.Parts.properties[PART_OF_PORT[port]];
+  if (part?.$ref) part = schemas[part.$ref.split("/").pop()];
+  if (!part) throw new Error(`no part declared for port ${port}`);
+  return part.required;
 }
 
 export function componentVersion(component: string): string | null {

@@ -1,0 +1,909 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/computer-players",
+    "version": "1.0.0",
+    "description": "Computer players: which names they sit under, how long they wait before moving, and when one plays for a person who is away. Pure over a small state (the strategy's memory); the moves come from an injected player strategy. TypeScript, `implementation/server/computers.ts`. Build once with createComputers(settings, {strategy, clock, seating}); methods named `Computers.<name>` are members of the object it returns. Seating state, game clock state and observations are opaque here. Clock times are milliseconds on the action clock; wall times are epoch milliseconds."
+  },
+  "methods": [
+    {
+      "name": "createComputers",
+      "description": "Check the settings and build the computer-player operations over a strategy, a game clock and seating.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PartialComputerSettings"
+          },
+          "description": "Missing settings take the defaults."
+        },
+        {
+          "name": "parts",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "strategy": {
+                "$ref": "#/components/schemas/Strategy"
+              },
+              "clock": {
+                "$ref": "#/components/schemas/Clock"
+              },
+              "seating": {
+                "$ref": "#/components/schemas/SeatsApi"
+              }
+            },
+            "required": [
+              "strategy",
+              "clock",
+              "seating"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "computers",
+        "schema": {
+          "$ref": "#/components/schemas/Computers"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMode"
+        },
+        {
+          "$ref": "#/components/errors/BadNames"
+        },
+        {
+          "$ref": "#/components/errors/BadMilliseconds"
+        }
+      ]
+    },
+    {
+      "name": "checkSettings",
+      "description": "Fill defaults, split a names text, and add the values derived from mode.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialComputerSettings"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/CheckedSettings"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMode"
+        },
+        {
+          "$ref": "#/components/errors/BadNames"
+        },
+        {
+          "$ref": "#/components/errors/BadMilliseconds"
+        }
+      ]
+    },
+    {
+      "name": "parseNames",
+      "description": "Split a text of names on whitespace; empty and repeated entries are dropped. A name from this text cannot hold a space; pass a list for such names.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "text",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "names",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "Computers.settings",
+      "description": "The checked settings, with enabled, fillEmptySeats and takeOverAbsent.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/CheckedSettings"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "Computers.create",
+      "description": "A new state: the strategy's fresh memory.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/ComputersState"
+        }
+      }
+    },
+    {
+      "name": "Computers.forget",
+      "description": "A new game starts with no memory of the last one's opponents.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/ComputersState"
+        }
+      }
+    },
+    {
+      "name": "Computers.idFor",
+      "description": "The stable player id for a computer name: \"computer-\" and the name in lower case with other characters as hyphens.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "name",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "id",
+        "schema": {
+          "type": "string",
+          "pattern": "^computer-"
+        }
+      }
+    },
+    {
+      "name": "Computers.nextName",
+      "description": "The first configured name not yet sitting, or null when all are taken.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "seats",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "name",
+        "schema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Computers.isComputer",
+      "description": "True when the id holds a computer seat.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "seats",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "computer",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Computers.add",
+      "description": "Seat one computer player on behalf of a person (the add-computer action). notAllowed when mode is none or seating refuses; seating's roomFull; roomFull also when every name is taken.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "seats",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "byId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "outcome",
+        "schema": {
+          "$ref": "#/components/schemas/Outcome"
+        }
+      }
+    },
+    {
+      "name": "Computers.fill",
+      "description": "With mode fill-empty, seat computers until the table is full or the names run out; otherwise nothing changes.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "seats",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "$ref": "#/components/schemas/SeatingState"
+            },
+            "added": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "state",
+            "added"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "Computers.actsFor",
+      "description": "Does the computer side move for this player: a computer, or (unless mode is none) a person who is not connected or is sitting out.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "seats",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "player",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "connected": {
+                "type": "boolean"
+              },
+              "sittingOut": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "connected",
+              "sittingOut"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "acts",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Computers.moveDeadline",
+      "description": "Action-clock deadline for a move: never within minimumGapMs of now, never before the table has settled, then thinkMinMs plus a random share of thinkSpreadMs.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "settleUntilMs",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "rng",
+          "required": true,
+          "schema": {
+            "description": "A function () => number. Returns a number in [0, 1)."
+          }
+        }
+      ],
+      "result": {
+        "name": "deadline",
+        "schema": {
+          "type": "number"
+        }
+      }
+    },
+    {
+      "name": "Computers.isDue",
+      "description": "True when the action clock has reached the deadline.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "deadlineMs",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "due",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Computers.wakeAt",
+      "description": "Wall time at which a move with this deadline falls due.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "deadlineMs",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": "number"
+        }
+      }
+    },
+    {
+      "name": "Computers.rebuyDelayMs",
+      "description": "The rebuyDelayMs setting.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "ms",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "Computers.rebuyAt",
+      "description": "Action-clock time at which a computer accepts a rebuy it is offered now.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": "number"
+        }
+      }
+    },
+    {
+      "name": "Computers.choose",
+      "description": "Ask the strategy for a move (on a copy of the memory); move null means it has nothing to play and the caller falls back to a default.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ComputersState"
+          }
+        },
+        {
+          "name": "observation",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "rng",
+          "required": true,
+          "schema": {
+            "description": "A function () => number. Returns a number in [0, 1)."
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "move": {
+              "description": "The strategy's move, or null."
+            },
+            "state": {
+              "$ref": "#/components/schemas/ComputersState"
+            }
+          },
+          "required": [
+            "move",
+            "state"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "Computers.observe",
+      "description": "Record what a player did, for the strategy's read on them.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ComputersState"
+          }
+        },
+        {
+          "name": "observation",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "move",
+          "required": true,
+          "schema": {}
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/ComputersState"
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ComputerSettings": {
+        "type": "object",
+        "properties": {
+          "names": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[\\x20-\\x7E]{1,20}$",
+                  "description": "1 to 20 plain characters, no leading or trailing space."
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": [
+              "Robin",
+              "Sam",
+              "Alex",
+              "Jordan",
+              "Casey",
+              "Morgan",
+              "Taylor",
+              "Riley"
+            ],
+            "description": "The names computers sit under, in order: a list, or one text of names separated by spaces (parseNames)."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "on-request",
+              "fill-empty"
+            ],
+            "default": "on-request",
+            "description": "none: no computer is seated (add is refused with notAllowed, fill adds none, nobody plays for an absent person). on-request: a person adds one, and a computer plays for a person who is away or sitting out. fill-empty: as on-request, and fill seats computers until the table is full."
+          },
+          "thinkMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 300
+          },
+          "thinkSpreadMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 1200,
+            "description": "Thinking time is thinkMinMs plus a random share of this."
+          },
+          "minimumGapMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 4000,
+            "description": "A computer never moves sooner than this after now."
+          },
+          "rebuyDelayMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 4000,
+            "description": "Delay before a computer accepts a rebuy."
+          }
+        },
+        "required": [
+          "names",
+          "mode",
+          "thinkMinMs",
+          "thinkSpreadMs",
+          "minimumGapMs",
+          "rebuyDelayMs"
+        ],
+        "additionalProperties": false
+      },
+      "PartialComputerSettings": {
+        "type": "object",
+        "properties": {
+          "names": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[\\x20-\\x7E]{1,20}$",
+                  "description": "1 to 20 plain characters, no leading or trailing space."
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "default": [
+              "Robin",
+              "Sam",
+              "Alex",
+              "Jordan",
+              "Casey",
+              "Morgan",
+              "Taylor",
+              "Riley"
+            ],
+            "description": "The names computers sit under, in order: a list, or one text of names separated by spaces (parseNames)."
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "on-request",
+              "fill-empty"
+            ],
+            "default": "on-request",
+            "description": "none: no computer is seated (add is refused with notAllowed, fill adds none, nobody plays for an absent person). on-request: a person adds one, and a computer plays for a person who is away or sitting out. fill-empty: as on-request, and fill seats computers until the table is full."
+          },
+          "thinkMinMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 300
+          },
+          "thinkSpreadMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 1200,
+            "description": "Thinking time is thinkMinMs plus a random share of this."
+          },
+          "minimumGapMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 4000,
+            "description": "A computer never moves sooner than this after now."
+          },
+          "rebuyDelayMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 4000,
+            "description": "Delay before a computer accepts a rebuy."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CheckedSettings": {
+        "type": "object",
+        "properties": {
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[\\x20-\\x7E]{1,20}$",
+              "description": "1 to 20 plain characters, no leading or trailing space."
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "none",
+              "on-request",
+              "fill-empty"
+            ],
+            "default": "on-request",
+            "description": "none: no computer is seated (add is refused with notAllowed, fill adds none, nobody plays for an absent person). on-request: a person adds one, and a computer plays for a person who is away or sitting out. fill-empty: as on-request, and fill seats computers until the table is full."
+          },
+          "thinkMinMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "thinkSpreadMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minimumGapMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rebuyDelayMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "mode is not none."
+          },
+          "fillEmptySeats": {
+            "type": "boolean",
+            "description": "mode is fill-empty."
+          },
+          "takeOverAbsent": {
+            "type": "boolean",
+            "description": "Same as enabled."
+          }
+        },
+        "required": [
+          "names",
+          "mode",
+          "thinkMinMs",
+          "thinkSpreadMs",
+          "minimumGapMs",
+          "rebuyDelayMs",
+          "enabled",
+          "fillEmptySeats",
+          "takeOverAbsent"
+        ],
+        "additionalProperties": false
+      },
+      "ComputersState": {
+        "type": "object",
+        "properties": {
+          "memory": {
+            "description": "The strategy's memory (plain JSON)."
+          }
+        },
+        "required": [
+          "memory"
+        ],
+        "additionalProperties": false
+      },
+      "SeatingState": {
+        "description": "seating's state, opaque here."
+      },
+      "ClockState": {
+        "description": "game-clock's state, opaque here."
+      },
+      "Outcome": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": true
+              },
+              "state": {
+                "$ref": "#/components/schemas/SeatingState"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ok",
+              "state",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": false
+              },
+              "code": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ok",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Strategy": {
+        "type": "object",
+        "description": "The members of a player-strategy's Strategy object this component calls.",
+        "properties": {
+          "newMemory": {
+            "description": "A function newMemory(): unknown."
+          },
+          "choose": {
+            "description": "A function choose(observation: unknown, playerId: string, rng: () => number, memory: unknown): unknown | null."
+          },
+          "observe": {
+            "description": "A function observe(memory: unknown, observation: unknown, playerId: string, move: unknown): unknown."
+          }
+        },
+        "required": [
+          "newMemory",
+          "choose",
+          "observe"
+        ],
+        "x-ourapps-interface": "ae/player-strategy"
+      },
+      "Clock": {
+        "type": "object",
+        "description": "The game-clock functions this component calls.",
+        "properties": {
+          "elapsed": {
+            "description": "A function elapsed(clock, which: \"action\" | \"level\"): number."
+          },
+          "wallAt": {
+            "description": "A function wallAt(clock, which: \"action\" | \"level\", targetMs: number): number."
+          }
+        },
+        "required": [
+          "elapsed",
+          "wallAt"
+        ],
+        "x-ourapps-interface": "ae/game-clock"
+      },
+      "SeatsApi": {
+        "type": "object",
+        "description": "The members of seating's Seating object this component calls.",
+        "properties": {
+          "isFull": {
+            "description": "A function isFull(state): boolean."
+          },
+          "find": {
+            "description": "A function find(state, id: string): { id, name, computer } | undefined."
+          },
+          "findByName": {
+            "description": "A function findByName(state, name: string): Seat | undefined."
+          },
+          "join": {
+            "description": "A function join(state, id: string, name: string, options?: { computer?: boolean }): Outcome."
+          },
+          "canAddComputer": {
+            "description": "A function canAddComputer(state, byId: string): Outcome."
+          }
+        },
+        "required": [
+          "isFull",
+          "find",
+          "findByName",
+          "join",
+          "canAddComputer"
+        ],
+        "x-ourapps-interface": "ae/seating"
+      },
+      "Computers": {
+        "type": "object",
+        "description": "The object createComputers returns; its members are the `Computers.<name>` methods."
+      }
+    },
+    "errors": {
+      "BadMode": {
+        "code": 1001,
+        "message": "computer-players: mode must be one of none, on-request, fill-empty",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadNames": {
+        "code": 1002,
+        "message": "computer-players: names must be a nonempty list of distinct names of 1 to 20 plain characters",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadMilliseconds": {
+        "code": 1003,
+        "message": "computer-players: <setting> must be a whole number of milliseconds, 0 or more",
+        "data": {
+          "thrown": "Error"
+        }
+      }
+    }
+  }
+}

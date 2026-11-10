@@ -1,0 +1,3758 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/game-rules",
+    "version": "1.0.0",
+    "description": "The game-rules interface a turn engine drives, provided for Texas hold'em. Build it with createGameRules(deps, settings, pacing); methods named `GameRules.<name>` are members of the object it returns. A round is { hand, autoSteps }: JSON-safe and opaque to the engine. The chip ledger (ae/chip-ledger) is passed in and returned on every call that moves chips; the hand moves chips only through chip-ledger operations, so the ledger's sidePots, oddChipRule and minimumUnit settings decide the pots. Every operation is pure: it returns new values and never changes its arguments. Engine contract: at the start of a round call newRound with the players still in, keep the returned carry for the next round and write the returned ledger back; while phase(...).stage is acting, wait for a move, parseMove it and act it (or act defaultMove with auto true), writing the ledger back every time; while it is auto, call step after autoDelayMs; when it is over, outcome gives holdMs for the result pause, result for the clients and historyEntry for round-history; to cancel mid-round, voidRound returns every wager through the ledger. The lower layer, the hand state machine, is createHoldem; its members are the `Holdem.<name>` methods. Server: TypeScript `implementation/server/index.ts` (rules.ts, holdem.ts, pots.ts, types.ts). Client betting controls: TypeScript `implementation/web/betting.ts`; Swift `implementation/apple/Sources/Betting.swift` and Kotlin `ae.holdem` `Betting.kt` have BetRange (adjusted, allows, canSlide, kind, snap rounding down), betStep, betPresets, callIsAllIn and betIsAllIn."
+  },
+  "methods": [
+    {
+      "name": "createGameRules",
+      "description": "The game-rules object for hold'em. Settings, lowest to highest precedence: DEFAULT_SETTINGS, the house rules (players.maximum, betting.minimum_opening_bet_big_blinds) when deps.rules is given, then `settings`.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/GameRulesDeps"
+          }
+        },
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialHoldemSettings"
+          },
+          "description": "Defaults to {}."
+        },
+        {
+          "name": "pacing",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialPacing"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "rules",
+        "schema": {
+          "$ref": "#/components/schemas/GameRules"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadSeats"
+        },
+        {
+          "$ref": "#/components/errors/BadOpening"
+        }
+      ]
+    },
+    {
+      "name": "DEFAULT_SETTINGS",
+      "description": "The default hold'em settings.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "DEFAULT_SETTINGS",
+        "schema": {
+          "$ref": "#/components/schemas/HoldemSettings"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "DEFAULT_PACING",
+      "description": "The default pacing.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "DEFAULT_PACING",
+        "schema": {
+          "$ref": "#/components/schemas/Pacing"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "ACTION_TYPES",
+      "description": "The betting action types.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "ACTION_TYPES",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "fold",
+              "check",
+              "call",
+              "bet",
+              "show"
+            ]
+          }
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "GameRules.settings",
+      "description": "The settings in force.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/HoldemSettings"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "GameRules.pacing",
+      "description": "The pacing in force.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "pacing",
+        "schema": {
+          "$ref": "#/components/schemas/Pacing"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "GameRules.lower",
+      "description": "The lower layer the adapter drives (createHoldem with the same ranking, ledger and settings).",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "lower",
+        "schema": {
+          "$ref": "#/components/schemas/Holdem"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "GameRules.optionNames",
+      "description": "Option names a client may switch on and off; hold'em has none.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "optionNames",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 0
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "GameRules.newRound",
+      "description": "Deal a new hand: a shuffled deck from card-deck, blinds sb and bb from the level schedule at input.level, stacks from the ledger, positions carried from the last round (or the button drawn with rng).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "no": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "players": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RoundPlayer"
+                }
+              },
+              "carry": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Positions"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {}
+                ],
+                "description": "The carry newRound returned last time, or null."
+              }
+            },
+            "required": [
+              "no",
+              "level",
+              "players",
+              "carry"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "ledger",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ledger"
+          }
+        },
+        {
+          "name": "rng",
+          "required": true,
+          "schema": {
+            "description": "A function () => number. Returns a number in [0, 1)."
+          }
+        }
+      ],
+      "result": {
+        "name": "started",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "round": {
+              "$ref": "#/components/schemas/Round"
+            },
+            "ledger": {
+              "$ref": "#/components/schemas/Ledger"
+            },
+            "carry": {
+              "$ref": "#/components/schemas/Positions"
+            }
+          },
+          "required": [
+            "round",
+            "ledger",
+            "carry"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/CannotStart"
+        },
+        {
+          "$ref": "#/components/errors/LedgerMismatch"
+        }
+      ]
+    },
+    {
+      "name": "GameRules.phase",
+      "description": "Where the round is: acting (one player is to move after settleMs; the first decision also waits for the cards to be dealt), auto (the next board card after autoDelayMs) or over.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "pacing",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "settleMs": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "settleMs"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "phase",
+        "schema": {
+          "$ref": "#/components/schemas/RoundPhase"
+        }
+      }
+    },
+    {
+      "name": "GameRules.parseMove",
+      "description": "Check and type a player's move message. needsTurn is false only for show.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {}
+        }
+      ],
+      "result": {
+        "name": "parsed",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "move": {
+                  "$ref": "#/components/schemas/Action"
+                },
+                "needsTurn": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "ok",
+                "move",
+                "needsTurn"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                }
+              },
+              "required": [
+                "ok"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "GameRules.act",
+      "description": "Apply one player's move: a betting action on their turn, or a voluntary show after the hand. unknownPlayer and notEnoughPlayers of the lower layer are reported as notAllowed.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "ledger",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ledger"
+          }
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "move",
+          "required": true,
+          "schema": {},
+          "description": "A move message; parsed with parseMove."
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "auto": {
+                "type": "boolean",
+                "description": "True when the engine acts for an absent or timed-out player."
+              }
+            },
+            "required": [
+              "auto"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "moved",
+        "schema": {
+          "$ref": "#/components/schemas/Moved"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/LedgerMismatch"
+        }
+      ]
+    },
+    {
+      "name": "GameRules.defaultMove",
+      "description": "What the engine plays for a player who timed out: check if free, otherwise fold.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "move",
+        "schema": {
+          "$ref": "#/components/schemas/Action"
+        }
+      }
+    },
+    {
+      "name": "GameRules.step",
+      "description": "Deal the next board card of a runout (flop, turn or river); settles after the river.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "ledger",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ledger"
+          }
+        }
+      ],
+      "result": {
+        "name": "stepped",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "round": {
+              "$ref": "#/components/schemas/Round"
+            },
+            "ledger": {
+              "$ref": "#/components/schemas/Ledger"
+            }
+          },
+          "required": [
+            "round",
+            "ledger"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/NotInRunout"
+        },
+        {
+          "$ref": "#/components/errors/LedgerMismatch"
+        }
+      ]
+    },
+    {
+      "name": "GameRules.outcome",
+      "description": "The round's outcome once it is over, else null. holdMs: 0 voided, handOverMs uncontested, else by showdown kind (showdownMs, showdownKickerMs, showdownDrawMs).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        }
+      ],
+      "result": {
+        "name": "outcome",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/RoundOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "GameRules.voidRound",
+      "description": "Cancel the round: every wager goes back through the ledger. A round already over is returned as it is.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "ledger",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ledger"
+          }
+        }
+      ],
+      "result": {
+        "name": "voided",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "round": {
+              "$ref": "#/components/schemas/Round"
+            },
+            "ledger": {
+              "$ref": "#/components/schemas/Ledger"
+            },
+            "outcome": {
+              "$ref": "#/components/schemas/RoundOutcome"
+            }
+          },
+          "required": [
+            "round",
+            "ledger",
+            "outcome"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/CannotVoid"
+        },
+        {
+          "$ref": "#/components/errors/LedgerMismatch"
+        }
+      ]
+    },
+    {
+      "name": "GameRules.observation",
+      "description": "What the player may know, shaped as poker-strategy's DecisionInput (without style); null for someone not in the hand.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "observation",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/DecisionInput"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "GameRules.records",
+      "description": "One hidden record per player: the two hole cards, hidden from everyone else until shown (by index 0 and 1).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        }
+      ],
+      "result": {
+        "name": "records",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/HiddenRecord"
+          }
+        }
+      }
+    },
+    {
+      "name": "GameRules.publicView",
+      "description": "The round for one viewer (null is a display) without the hole cards (they come from records) and without the legal moves (they come from legal). options is accepted and ignored.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "viewerId",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "view",
+        "schema": {
+          "$ref": "#/components/schemas/PublicView"
+        }
+      }
+    },
+    {
+      "name": "GameRules.legal",
+      "description": "What the viewer may do now; nothing while the table is paused.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "viewerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "paused": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "paused"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "legal",
+        "schema": {
+          "$ref": "#/components/schemas/Legal"
+        }
+      }
+    },
+    {
+      "name": "GameRules.prompt",
+      "description": "The line to show the viewer, or null.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "round",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Round"
+          }
+        },
+        {
+          "name": "viewerId",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "prompt",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/Prompt"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "createHoldem",
+      "description": "The lower layer: the hand state machine.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "ranking": {
+                "$ref": "#/components/schemas/HandRankingLike"
+              },
+              "ledger": {
+                "$ref": "#/components/schemas/LedgerOperations"
+              }
+            },
+            "required": [
+              "ranking",
+              "ledger"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialHoldemSettings"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "holdem",
+        "schema": {
+          "$ref": "#/components/schemas/Holdem"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadSeats"
+        },
+        {
+          "$ref": "#/components/errors/BadOpening"
+        }
+      ]
+    },
+    {
+      "name": "Holdem.settings",
+      "description": "The settings in force.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/HoldemSettings"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "Holdem.parseAction",
+      "description": "The wire message of a player's action, checked and typed. Not for lifecycle messages.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {}
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "$ref": "#/components/schemas/Action"
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "code": {
+                  "$ref": "#/components/schemas/RulesError"
+                }
+              },
+              "required": [
+                "ok",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Holdem.newHand",
+      "description": "Deal, post the blinds and find who acts first. Needs at least two players with chips.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "args",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/NewHandArguments"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "hand": {
+                      "$ref": "#/components/schemas/Hand"
+                    },
+                    "positions": {
+                      "$ref": "#/components/schemas/Positions"
+                    }
+                  },
+                  "required": [
+                    "hand",
+                    "positions"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "code": {
+                  "$ref": "#/components/schemas/RulesError"
+                }
+              },
+              "required": [
+                "ok",
+                "code"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Holdem.legalActions",
+      "description": "What the player may do now.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "legal",
+        "schema": {
+          "$ref": "#/components/schemas/Legal"
+        }
+      }
+    },
+    {
+      "name": "Holdem.apply",
+      "description": "One player's action: a betting action on their turn, or a voluntary show after the hand. May end the street, start the runout or settle the hand.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "action",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Action"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "auto": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "auto: the engine acted for the player."
+        }
+      ],
+      "result": {
+        "name": "step",
+        "schema": {
+          "$ref": "#/components/schemas/Step"
+        }
+      }
+    },
+    {
+      "name": "Holdem.autoAction",
+      "description": "What the engine plays for a player who timed out: check if free, otherwise fold.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        },
+        {
+          "name": "playerId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "action",
+        "schema": {
+          "$ref": "#/components/schemas/Action"
+        }
+      }
+    },
+    {
+      "name": "Holdem.runoutStep",
+      "description": "Stage runout: deal the next board cards (flop, turn or river); settles after the river.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        }
+      ],
+      "result": {
+        "name": "step",
+        "schema": {
+          "$ref": "#/components/schemas/Step"
+        }
+      }
+    },
+    {
+      "name": "Holdem.isHandOver",
+      "description": "True once the hand is settled.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        }
+      ],
+      "result": {
+        "name": "over",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Holdem.settle",
+      "description": "Finish a runout at once: deal what is left of the board and settle. Idempotent once over.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        }
+      ],
+      "result": {
+        "name": "step",
+        "schema": {
+          "$ref": "#/components/schemas/Step"
+        }
+      }
+    },
+    {
+      "name": "Holdem.voidHand",
+      "description": "End the hand without a winner and give every contribution back (a cancelled game).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        }
+      ],
+      "result": {
+        "name": "step",
+        "schema": {
+          "$ref": "#/components/schemas/Step"
+        }
+      }
+    },
+    {
+      "name": "Holdem.view",
+      "description": "What a viewer may see: the hand, each player's state, the viewer's legal actions, the result. viewerId null is a display that shows only what is face up.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        },
+        {
+          "name": "viewerId",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "view",
+        "schema": {
+          "$ref": "#/components/schemas/RulesView"
+        }
+      }
+    },
+    {
+      "name": "Holdem.stacks",
+      "description": "Chips each player holds behind (the same as the ledger's stacks).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        }
+      ],
+      "result": {
+        "name": "stacks",
+        "schema": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "Holdem.attachLedger",
+      "description": "The hand with this ledger as its chip record. Every player of the hand must have the same stack, wager and folded mark in it.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        },
+        {
+          "name": "ledger",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ledger"
+          }
+        }
+      ],
+      "result": {
+        "name": "hand",
+        "schema": {
+          "$ref": "#/components/schemas/Hand"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/LedgerMismatch"
+        }
+      ]
+    },
+    {
+      "name": "Holdem.chipsInPlay",
+      "description": "Stacks plus wagers; equals hand.chips at every point of a hand.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "hand",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Hand"
+          }
+        }
+      ],
+      "result": {
+        "name": "chips",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "awardPot",
+      "description": "Pay one pot to its best hands through the ledger's odd-chip rule. A pot with one eligible player is that player's (no hand name).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "ranking",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/HandRankingLike"
+          }
+        },
+        {
+          "name": "ledgerOps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/LedgerOperations"
+          }
+        },
+        {
+          "name": "ledger",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Ledger"
+          }
+        },
+        {
+          "name": "pot",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Pot"
+          }
+        },
+        {
+          "name": "holders",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Holder"
+            }
+          }
+        },
+        {
+          "name": "board",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          }
+        },
+        {
+          "name": "button",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "award",
+        "schema": {
+          "$ref": "#/components/schemas/Award"
+        }
+      }
+    },
+    {
+      "name": "showdownOf",
+      "description": "How the main pot was won at a showdown, for showing it; null when fewer than two were eligible.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "ranking",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/HandRankingLike"
+          }
+        },
+        {
+          "name": "main",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Award"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The main pot's award; undefined when there is none."
+          }
+        },
+        {
+          "name": "players",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Holder"
+            }
+          }
+        },
+        {
+          "name": "board",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "showdown",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/Showdown"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "stepFor",
+      "description": "Client: the unit a slider and quick amounts move in: the small blind, at least 1 (Swift and Kotlin betStep).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "smallBlind",
+          "required": true,
+          "schema": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "step",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    {
+      "name": "snap",
+      "description": "Client: an amount rounded to the step and held inside the range. Browsers round to the nearest step; the native apps round down (BetRange.snap).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "amount",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "range",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/BetRange"
+          }
+        },
+        {
+          "name": "step",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        {
+          "name": "rounding",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "nearest",
+              "down"
+            ],
+            "default": "nearest"
+          }
+        }
+      ],
+      "result": {
+        "name": "amount",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "presets",
+      "description": "Client: the quick amounts: the smallest allowed, half the pot, the pot (each after calling) and all-in (Swift and Kotlin betPresets, rounding down).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "range": {
+                "$ref": "#/components/schemas/BetRange"
+              },
+              "pot": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "toCall": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "currentBet": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "smallBlind": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "rounding": {
+                "type": "string",
+                "enum": [
+                  "nearest",
+                  "down"
+                ]
+              }
+            },
+            "required": [
+              "range",
+              "pot",
+              "toCall",
+              "currentBet"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "presets",
+        "schema": {
+          "$ref": "#/components/schemas/Presets"
+        }
+      }
+    },
+    {
+      "name": "adjust",
+      "description": "Client: move an amount by a number of chips, held inside the range and safe against overflow (BetRange.adjusted).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "amount",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "by",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "range",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/BetRange"
+          }
+        }
+      ],
+      "result": {
+        "name": "amount",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "isAllowedAmount",
+      "description": "Client: whether a typed amount may be sent: a whole number inside the range (BetRange.allows).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "amount",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "name": "range",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/BetRange"
+          }
+        }
+      ],
+      "result": {
+        "name": "allowed",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "canSlide",
+      "description": "Client: whether a slider has anything to slide over.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "range",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/BetRange"
+          }
+        },
+        {
+          "name": "step",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      ],
+      "result": {
+        "name": "can",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "betKind",
+      "description": "Client: what the confirm button says for a chosen total: all-in at the maximum, otherwise bet or raise (BetRange.kind).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "to",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "range",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/BetRange"
+          }
+        }
+      ],
+      "result": {
+        "name": "kind",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "allIn",
+            "bet",
+            "raise"
+          ]
+        }
+      }
+    },
+    {
+      "name": "callIsAllIn",
+      "description": "Client: whether calling puts the player all-in.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "call",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "stack",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "allIn",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "betIsAllIn",
+      "description": "Client: whether a bet to this total puts the player all-in (stack and bet are what is behind and in front now).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "to",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "stack",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "bet",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "allIn",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Card": {
+        "type": "string",
+        "pattern": "^[2-9TJQKA][cdhs]$",
+        "description": "Two characters: rank 2-9, T, J, Q, K, A then suit c, d, h, s."
+      },
+      "Street": {
+        "type": "string",
+        "enum": [
+          "preflop",
+          "flop",
+          "turn",
+          "river"
+        ]
+      },
+      "Stage": {
+        "type": "string",
+        "enum": [
+          "betting",
+          "runout",
+          "over"
+        ],
+        "description": "betting: someone may act; runout: nobody can bet any more, the board is being dealt; over: settled."
+      },
+      "Action": {
+        "description": "bet carries the total for the street (opening bet, raise or all-in raise); show turns your own cards face up after the hand.",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "fold"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "check"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "call"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "bet"
+              },
+              "to": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "type",
+              "to"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "show"
+              },
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "enum": [
+                    0,
+                    1
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "cards"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "RulesError": {
+        "type": "string",
+        "enum": [
+          "badRequest",
+          "wrongPhase",
+          "notYourTurn",
+          "notAllowed",
+          "badAmount",
+          "unknownPlayer",
+          "notEnoughPlayers"
+        ]
+      },
+      "MoveCode": {
+        "type": "string",
+        "enum": [
+          "badRequest",
+          "notAllowed",
+          "badAmount",
+          "notYourTurn",
+          "wrongPhase"
+        ]
+      },
+      "Step": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": true
+              },
+              "hand": {
+                "$ref": "#/components/schemas/Hand"
+              }
+            },
+            "required": [
+              "ok",
+              "hand"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": false
+              },
+              "code": {
+                "$ref": "#/components/schemas/RulesError"
+              }
+            },
+            "required": [
+              "ok",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "LastAction": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "blind",
+              "fold",
+              "check",
+              "call",
+              "bet",
+              "raise",
+              "allIn"
+            ]
+          },
+          "amount": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "auto": {
+            "type": "boolean",
+            "description": "True when the engine acted for an absent or timed-out player."
+          }
+        },
+        "required": [
+          "kind",
+          "amount",
+          "auto"
+        ],
+        "additionalProperties": false
+      },
+      "SeatedPlayer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stack": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "seat",
+          "stack"
+        ],
+        "additionalProperties": false
+      },
+      "Positions": {
+        "type": "object",
+        "properties": {
+          "button": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sbSeat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bbSeat": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "button",
+          "sbSeat",
+          "bbSeat"
+        ],
+        "additionalProperties": false,
+        "description": "The carry between rounds."
+      },
+      "HandPlayer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stack": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "startStack": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          },
+          "bet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalIn": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "folded": {
+            "type": "boolean"
+          },
+          "allIn": {
+            "type": "boolean"
+          },
+          "acted": {
+            "type": "boolean"
+          },
+          "canRaise": {
+            "type": "boolean"
+          },
+          "lastAction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LastAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shown": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "description": "Which of the two cards are face up."
+          }
+        },
+        "required": [
+          "id",
+          "seat",
+          "stack",
+          "startStack",
+          "cards",
+          "bet",
+          "totalIn",
+          "folded",
+          "allIn",
+          "acted",
+          "canRaise",
+          "lastAction",
+          "shown"
+        ],
+        "additionalProperties": false
+      },
+      "Pot": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligible": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "amount",
+          "eligible"
+        ],
+        "additionalProperties": false
+      },
+      "Award": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligible": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "winners": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "playerId": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "handName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "playerId",
+                "amount",
+                "handName"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "amount",
+          "eligible",
+          "winners"
+        ],
+        "additionalProperties": false
+      },
+      "Showdown": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "combination",
+              "kicker",
+              "draw"
+            ]
+          },
+          "winners": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kickers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5
+            },
+            "description": "Per hand, how many of its kickers to show after its combination."
+          }
+        },
+        "required": [
+          "kind",
+          "winners",
+          "kickers"
+        ],
+        "additionalProperties": false
+      },
+      "HandOutcome": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "board": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          },
+          "pots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Award"
+            }
+          },
+          "uncontested": {
+            "type": "boolean"
+          },
+          "voided": {
+            "type": "boolean"
+          },
+          "showdown": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Showdown"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "no",
+          "board",
+          "pots",
+          "uncontested",
+          "voided",
+          "showdown"
+        ],
+        "additionalProperties": false
+      },
+      "LedgerSettings": {
+        "type": "object",
+        "properties": {
+          "startingStack": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minimumUnit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "oddChipRule": {
+            "type": "string",
+            "enum": [
+              "clockwise-after-button",
+              "first-listed"
+            ]
+          },
+          "sidePots": {
+            "type": "boolean"
+          },
+          "seats": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "required": [
+          "startingStack",
+          "minimumUnit",
+          "oddChipRule",
+          "sidePots",
+          "seats"
+        ],
+        "additionalProperties": false
+      },
+      "Stake": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stack": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalIn": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "folded": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "seat",
+          "stack",
+          "bet",
+          "totalIn",
+          "folded"
+        ],
+        "additionalProperties": false
+      },
+      "Ledger": {
+        "type": "object",
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/LedgerSettings"
+          },
+          "stakes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Stake"
+            }
+          },
+          "issued": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "settings",
+          "stakes",
+          "issued"
+        ],
+        "additionalProperties": false,
+        "description": "chip-ledger's Ledger.",
+        "x-ourapps-interface": "ae/chip-ledger"
+      },
+      "PotRules": {
+        "type": "object",
+        "properties": {
+          "sidePots": {
+            "type": "boolean"
+          },
+          "oddChipRule": {
+            "type": "string",
+            "enum": [
+              "clockwise-after-button",
+              "first-listed"
+            ]
+          },
+          "minimumUnit": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false,
+        "description": "What a hand needs from the ledger's settings when it opens its own ledger."
+      },
+      "Hand": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "button": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sbSeat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bbSeat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HandPlayer"
+            }
+          },
+          "deck": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            },
+            "description": "Cards still to deal, dealt from the end. Never sent to a client."
+          },
+          "board": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            },
+            "maxItems": 5
+          },
+          "street": {
+            "$ref": "#/components/schemas/Street"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "actorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event": {
+            "enum": [
+              "deal",
+              "flop",
+              "turn",
+              "river",
+              "action",
+              null
+            ],
+            "description": "What the table is settling on: the deal, a new street or the last action (by lastActorId)."
+          },
+          "lastActorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "currentBet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastFullRaise": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastFullRaiseTo": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "chips": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total chips in the hand at the start; constant until the hand is over."
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HandOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ledger": {
+            "$ref": "#/components/schemas/Ledger",
+            "description": "Where every chip is; the players' stack, bet, totalIn and folded mirror it."
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "sb",
+          "bb",
+          "button",
+          "sbSeat",
+          "bbSeat",
+          "players",
+          "deck",
+          "board",
+          "street",
+          "stage",
+          "actorId",
+          "event",
+          "lastActorId",
+          "currentBet",
+          "lastFullRaise",
+          "lastFullRaiseTo",
+          "chips",
+          "result",
+          "ledger"
+        ],
+        "additionalProperties": false,
+        "description": "A hand as plain data: serialise it, store it, clone it."
+      },
+      "NewHandArguments": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatedPlayer"
+            },
+            "description": "Players with chips, any order."
+          },
+          "positions": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Positions"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Positions of the previous hand, or null for the first hand (the button is then drawn with rng)."
+          },
+          "deck": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            },
+            "description": "A shuffled deck from card-deck, dealt from the end."
+          },
+          "rng": {
+            "description": "A function () => number. Returns a number in [0, 1)."
+          },
+          "ledger": {
+            "$ref": "#/components/schemas/Ledger",
+            "description": "The ledger the chips move through; every player's stack must match it and nobody may have a wager open. Without one the hand opens its own from players and potRules."
+          },
+          "potRules": {
+            "$ref": "#/components/schemas/PotRules"
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "sb",
+          "bb",
+          "players",
+          "positions",
+          "deck",
+          "rng"
+        ],
+        "additionalProperties": false
+      },
+      "Legal": {
+        "type": "object",
+        "properties": {
+          "fold": {
+            "type": "boolean"
+          },
+          "check": {
+            "type": "boolean"
+          },
+          "call": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "bet": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "min": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "opening": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "min",
+              "max",
+              "opening"
+            ],
+            "additionalProperties": false,
+            "description": "The allowed range of the street total; max is all-in."
+          },
+          "show": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "enum": [
+                0,
+                1
+              ]
+            },
+            "description": "Cards that may still be turned face up after the hand."
+          }
+        },
+        "required": [
+          "fold",
+          "check",
+          "call",
+          "bet",
+          "show"
+        ],
+        "additionalProperties": false
+      },
+      "HandView": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "button": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sbSeat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bbSeat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "street": {
+            "$ref": "#/components/schemas/Street"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "board": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          },
+          "pots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Pot"
+            }
+          },
+          "potTotal": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Chips wagered this hand that are not yet in a pot, for display as the live pot."
+          },
+          "currentBet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "actorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event": {
+            "enum": [
+              "deal",
+              "flop",
+              "turn",
+              "river",
+              "action",
+              null
+            ]
+          },
+          "lastActorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "sb",
+          "bb",
+          "button",
+          "sbSeat",
+          "bbSeat",
+          "street",
+          "stage",
+          "board",
+          "pots",
+          "potTotal",
+          "currentBet",
+          "actorId",
+          "event",
+          "lastActorId"
+        ],
+        "additionalProperties": false
+      },
+      "PlayerHandView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stack": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalIn": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "folded": {
+            "type": "boolean"
+          },
+          "allIn": {
+            "type": "boolean"
+          },
+          "lastAction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LastAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hand": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "category": {
+                "type": "string"
+              },
+              "ranks": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 12
+                }
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "category",
+              "ranks",
+              "name"
+            ],
+            "additionalProperties": false,
+            "description": "Best five-card hand once both cards are shown and the board has three or more cards."
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Card"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "description": "null entries are face down; your own cards and shown cards carry the card."
+          }
+        },
+        "required": [
+          "id",
+          "seat",
+          "stack",
+          "bet",
+          "totalIn",
+          "folded",
+          "allIn",
+          "lastAction",
+          "hand",
+          "cards"
+        ],
+        "additionalProperties": false
+      },
+      "RulesView": {
+        "type": "object",
+        "properties": {
+          "hand": {
+            "$ref": "#/components/schemas/HandView"
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerHandView"
+            }
+          },
+          "legal": {
+            "$ref": "#/components/schemas/Legal"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HandOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "hand",
+          "players",
+          "legal",
+          "result"
+        ],
+        "additionalProperties": false
+      },
+      "HoldemSettings": {
+        "type": "object",
+        "properties": {
+          "seats": {
+            "type": "integer",
+            "minimum": 2,
+            "default": 9,
+            "description": "Seats at the table: the odd chip of a split pot goes clockwise from the button around this many."
+          },
+          "minimumOpeningBetBigBlinds": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Minimum opening bet and minimum raise at the start of a street, in big blinds."
+          },
+          "revealAtRunout": {
+            "type": "boolean",
+            "default": true,
+            "description": "Turn every live hand face up as soon as nobody can bet any more."
+          }
+        },
+        "required": [
+          "seats",
+          "minimumOpeningBetBigBlinds",
+          "revealAtRunout"
+        ],
+        "additionalProperties": false
+      },
+      "PartialHoldemSettings": {
+        "type": "object",
+        "properties": {
+          "seats": {
+            "type": "integer",
+            "minimum": 2,
+            "default": 9,
+            "description": "Seats at the table: the odd chip of a split pot goes clockwise from the button around this many."
+          },
+          "minimumOpeningBetBigBlinds": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "Minimum opening bet and minimum raise at the start of a street, in big blinds."
+          },
+          "revealAtRunout": {
+            "type": "boolean",
+            "default": true,
+            "description": "Turn every live hand face up as soon as nobody can bet any more."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Pacing": {
+        "type": "object",
+        "properties": {
+          "dealCardMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 340
+          },
+          "runoutStepMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 3000
+          },
+          "handOverMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 6000
+          },
+          "showdownMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 22000
+          },
+          "showdownKickerMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 27000
+          },
+          "showdownDrawMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 42000
+          }
+        },
+        "required": [
+          "dealCardMs",
+          "runoutStepMs",
+          "handOverMs",
+          "showdownMs",
+          "showdownKickerMs",
+          "showdownDrawMs"
+        ],
+        "additionalProperties": false,
+        "description": "Milliseconds the table gives each moment of a hand."
+      },
+      "PartialPacing": {
+        "type": "object",
+        "properties": {
+          "dealCardMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 340
+          },
+          "runoutStepMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 3000
+          },
+          "handOverMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 6000
+          },
+          "showdownMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 22000
+          },
+          "showdownKickerMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 27000
+          },
+          "showdownDrawMs": {
+            "type": "number",
+            "minimum": 0,
+            "default": 42000
+          }
+        },
+        "additionalProperties": false
+      },
+      "Round": {
+        "type": "object",
+        "properties": {
+          "hand": {
+            "$ref": "#/components/schemas/Hand"
+          },
+          "autoSteps": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Runout steps taken, used to pace the first board card."
+          }
+        },
+        "required": [
+          "hand",
+          "autoSteps"
+        ],
+        "additionalProperties": false
+      },
+      "RoundPlayer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "seat"
+        ],
+        "additionalProperties": false
+      },
+      "Moved": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": true
+              },
+              "round": {
+                "$ref": "#/components/schemas/Round"
+              },
+              "ledger": {
+                "$ref": "#/components/schemas/Ledger"
+              }
+            },
+            "required": [
+              "ok",
+              "round",
+              "ledger"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": false
+              },
+              "code": {
+                "$ref": "#/components/schemas/MoveCode"
+              }
+            },
+            "required": [
+              "ok",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "RoundPhase": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "enum": [
+              "acting",
+              "auto",
+              "over"
+            ]
+          },
+          "actorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "settleMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "autoDelayMs": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "event": {
+            "enum": [
+              "deal",
+              "flop",
+              "turn",
+              "river",
+              "action",
+              null
+            ]
+          },
+          "lastActorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "stage",
+          "actorId",
+          "settleMs",
+          "autoDelayMs",
+          "event",
+          "lastActorId"
+        ],
+        "additionalProperties": false
+      },
+      "RoundOutcome": {
+        "type": "object",
+        "properties": {
+          "holdMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "voided": {
+            "type": "boolean"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "no": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "board": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Card"
+                }
+              },
+              "pots": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Award"
+                }
+              },
+              "uncontested": {
+                "type": "boolean"
+              },
+              "voided": {
+                "type": "boolean"
+              },
+              "showdown": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Showdown"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "holdMs": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "no",
+              "board",
+              "pots",
+              "uncontested",
+              "voided",
+              "showdown",
+              "holdMs"
+            ],
+            "additionalProperties": false,
+            "description": "The HandOutcome with holdMs, shown to clients as lastResult."
+          },
+          "historyEntry": {
+            "type": "object",
+            "properties": {
+              "winners": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "playerId": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "playerId",
+                    "amount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "winners"
+            ],
+            "additionalProperties": false,
+            "description": "Merged into the round-history entry."
+          }
+        },
+        "required": [
+          "holdMs",
+          "voided",
+          "result",
+          "historyEntry"
+        ],
+        "additionalProperties": false
+      },
+      "HiddenRecord": {
+        "type": "object",
+        "properties": {
+          "ownerId": {
+            "type": "string"
+          },
+          "open": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false
+          },
+          "hidden": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Card"
+                }
+              }
+            },
+            "required": [
+              "cards"
+            ],
+            "additionalProperties": false
+          },
+          "revealed": {
+            "type": "object",
+            "properties": {
+              "cards": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "enum": [
+                    0,
+                    1
+                  ]
+                }
+              }
+            },
+            "required": [
+              "cards"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "ownerId",
+          "open",
+          "hidden",
+          "revealed"
+        ],
+        "additionalProperties": false,
+        "description": "private-views' HiddenRecord for one player's hole cards.",
+        "x-ourapps-interface": "ae/private-views"
+      },
+      "DecisionInput": {
+        "type": "object",
+        "properties": {
+          "hole": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          },
+          "board": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          },
+          "street": {
+            "$ref": "#/components/schemas/Street"
+          },
+          "stack": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "button": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seats": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "sb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "bb": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "currentBet": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastFullRaiseTo": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pot": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "legal": {
+            "type": "object",
+            "properties": {
+              "fold": {
+                "type": "boolean"
+              },
+              "check": {
+                "type": "boolean"
+              },
+              "call": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "bet": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "min": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "max": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "opening": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "opening"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "fold",
+              "check",
+              "call",
+              "bet"
+            ],
+            "additionalProperties": false
+          },
+          "opponents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "seat": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "bet": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "totalIn": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "lastAction": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "blind",
+                        "fold",
+                        "check",
+                        "call",
+                        "bet",
+                        "raise",
+                        "allIn"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "seat",
+                "bet",
+                "totalIn",
+                "lastAction"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "hole",
+          "board",
+          "street",
+          "stack",
+          "bet",
+          "seat",
+          "button",
+          "seats",
+          "sb",
+          "bb",
+          "currentBet",
+          "lastFullRaiseTo",
+          "pot",
+          "legal",
+          "opponents"
+        ],
+        "additionalProperties": false,
+        "description": "poker-strategy's DecisionInput without style.",
+        "x-ourapps-interface": "ae/player-strategy"
+      },
+      "PublicView": {
+        "type": "object",
+        "properties": {
+          "hand": {
+            "$ref": "#/components/schemas/HandView"
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "seat": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "stack": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "bet": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "totalIn": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "folded": {
+                  "type": "boolean"
+                },
+                "allIn": {
+                  "type": "boolean"
+                },
+                "lastAction": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/LastAction"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "hand": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "properties": {
+                    "category": {
+                      "type": "string"
+                    },
+                    "ranks": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 12
+                      }
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "category",
+                    "ranks",
+                    "name"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Best five-card hand once both cards are shown and the board has three or more cards."
+                }
+              },
+              "required": [
+                "id",
+                "seat",
+                "stack",
+                "bet",
+                "totalIn",
+                "folded",
+                "allIn",
+                "lastAction",
+                "hand"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HandOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "hand",
+          "players",
+          "result"
+        ],
+        "additionalProperties": false
+      },
+      "Prompt": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "enum": [
+              "dealingBoard",
+              "handVoided",
+              "youWon",
+              "othersFolded",
+              "showdown",
+              "facingBet",
+              "checkOrBet"
+            ]
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "text": {
+            "type": "string",
+            "description": "English text; the key and args are for the application's language files."
+          }
+        },
+        "required": [
+          "key",
+          "args",
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "Holder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Card"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "cards"
+        ],
+        "additionalProperties": false
+      },
+      "GameRulesDeps": {
+        "type": "object",
+        "properties": {
+          "ranking": {
+            "$ref": "#/components/schemas/HandRankingLike"
+          },
+          "ledger": {
+            "$ref": "#/components/schemas/LedgerOperations"
+          },
+          "deck": {
+            "$ref": "#/components/schemas/DeckOperations"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/BlindSchedule"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/RuleValues"
+          }
+        },
+        "required": [
+          "ranking",
+          "ledger",
+          "deck",
+          "schedule"
+        ],
+        "additionalProperties": false
+      },
+      "HandRankingLike": {
+        "type": "object",
+        "description": "The members of a hand-ranking's HandRanking object hold'em calls.",
+        "properties": {
+          "evaluate": {
+            "description": "A function evaluate(cards: Card[]): Evaluation."
+          },
+          "compareEvaluations": {
+            "description": "A function compareEvaluations(a: Evaluation, b: Evaluation): Comparison."
+          },
+          "winners": {
+            "description": "A function winners(contenders: { id: string; cards: Card[] }[], board: Card[]): { ids: string[]; evaluations: Record<string, Evaluation> }."
+          }
+        },
+        "required": [
+          "evaluate",
+          "compareEvaluations",
+          "winners"
+        ],
+        "x-ourapps-interface": "ae/hand-ranking"
+      },
+      "LedgerOperations": {
+        "type": "object",
+        "description": "The chip-ledger functions the hand calls (the chip-ledger module).",
+        "properties": {
+          "validateSettings": {
+            "description": "A function validateSettings(settings?: Partial<LedgerSettings>): LedgerSettings."
+          },
+          "stakeOf": {
+            "description": "A function stakeOf(ledger, id): Stake."
+          },
+          "commit": {
+            "description": "A function commit(ledger, id, amount): { ledger; committed }."
+          },
+          "fold": {
+            "description": "A function fold(ledger, id): Ledger."
+          },
+          "endRound": {
+            "description": "A function endRound(ledger): Ledger."
+          },
+          "returnUncalled": {
+            "description": "A function returnUncalled(ledger): { ledger; returned }."
+          },
+          "buildPots": {
+            "description": "A function buildPots(ledger): Pot[]."
+          },
+          "displayPots": {
+            "description": "A function displayPots(ledger): Pot[]."
+          },
+          "awardPot": {
+            "description": "A function awardPot(ledger, pot, winners: string[], button: number): Award."
+          },
+          "settle": {
+            "description": "A function settle(ledger, awards): Ledger."
+          },
+          "voidHand": {
+            "description": "A function voidHand(ledger): Ledger."
+          },
+          "nextHand": {
+            "description": "A function nextHand(ledger): Ledger."
+          }
+        },
+        "required": [
+          "validateSettings",
+          "stakeOf",
+          "commit",
+          "fold",
+          "endRound",
+          "returnUncalled",
+          "buildPots",
+          "displayPots",
+          "awardPot",
+          "settle",
+          "voidHand",
+          "nextHand"
+        ],
+        "x-ourapps-interface": "ae/chip-ledger"
+      },
+      "DeckOperations": {
+        "type": "object",
+        "description": "The card-deck function used: a shuffled deck whose draw pile is dealt from the end.",
+        "properties": {
+          "createShuffledDeck": {
+            "description": "A function createShuffledDeck(settings: { decks: number; jokers: boolean }, source: { shuffle<T>(items: readonly T[]): T[] }): { draw: Card[]; burned: Card[] }."
+          }
+        },
+        "required": [
+          "createShuffledDeck"
+        ],
+        "x-ourapps-interface": "ae/card-deck"
+      },
+      "BlindSchedule": {
+        "type": "object",
+        "description": "level-schedule's ScheduleApi bound to a schedule; hold'em reads values.sb and values.bb.",
+        "properties": {
+          "levelInfo": {
+            "description": "A function levelInfo(level: number): { values: Record<string, number> }."
+          }
+        },
+        "required": [
+          "levelInfo"
+        ],
+        "x-ourapps-interface": "ae/level-schedule"
+      },
+      "RuleValues": {
+        "type": "object",
+        "description": "rules-settings' RulesReader; hold'em reads players.maximum and betting.minimum_opening_bet_big_blinds.",
+        "properties": {
+          "value": {
+            "description": "A function value(path: string): unknown."
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "x-ourapps-interface": "ae/rules-settings"
+      },
+      "GameRules": {
+        "type": "object",
+        "description": "The object createGameRules returns; its members are the `GameRules.<name>` methods."
+      },
+      "Holdem": {
+        "type": "object",
+        "description": "The object createHoldem returns (TypeScript type GameRules in types.ts); its members are the `Holdem.<name>` methods."
+      },
+      "BetRange": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "opening": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "min",
+          "max",
+          "opening"
+        ],
+        "additionalProperties": false
+      },
+      "Presets": {
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "halfPot": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pot": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "allIn": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "min",
+          "halfPot",
+          "pot",
+          "allIn"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "errors": {
+      "BadSeats": {
+        "code": 1001,
+        "message": "seats is an integer of at least 2",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadOpening": {
+        "code": 1002,
+        "message": "minimumOpeningBetBigBlinds is an integer of at least 1",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "CannotStart": {
+        "code": 1003,
+        "message": "holdem-rules: cannot start round <no>: <code>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "NotInRunout": {
+        "code": 1004,
+        "message": "holdem-rules: step needs a hand in its runout (<code>)",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "CannotVoid": {
+        "code": 1005,
+        "message": "holdem-rules: cannot void the round (<code>)",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "LedgerMismatch": {
+        "code": 1006,
+        "message": "holdem-rules: the ledger does not match the hand: <problem>",
+        "data": {
+          "thrown": "Error"
+        }
+      }
+    }
+  }
+}

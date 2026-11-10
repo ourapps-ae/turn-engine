@@ -1,0 +1,649 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/rules-settings",
+    "version": "1.0.0",
+    "description": "A house rules file checked against its schema and read by path. The engine form is `RulesReader.value(path)` over checked rules, from createRulesSettings(rules) or loadRulesSettings({rulesFile, strict}, folder); methods named `RulesReader.<name>` are members of that object. The `rulesFile` setting is a name (a lower-case slug, default house-rules), not a path: the rules are <folder>/<name>.json with their schema beside them as <folder>/<name>.schema.json. The checker supports type, enum, const, minimum, maximum, minLength, maxLength, pattern, items, minItems, maxItems, properties, required, additionalProperties, oneOf, anyOf and local $ref; annotation keywords are ignored and any other keyword makes the schema unusable. Browser and server: TypeScript `implementation/web/schema.ts`; file loading (server only): `implementation/server/rules.ts`, which also exports everything of schema.ts."
+  },
+  "methods": [
+    {
+      "name": "parseRules",
+      "description": "Parse JSON text, check it and freeze it deeply. Never throws on bad rules, only on an unusable schema.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "text",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "schema",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "parsed",
+        "schema": {
+          "$ref": "#/components/schemas/Parsed"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/UnusableSchema"
+        }
+      ]
+    },
+    {
+      "name": "validate",
+      "description": "Every way `value` breaks `schema`; empty when it is valid.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "value",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "schema",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "problems",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Problem"
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/UnusableSchema"
+        }
+      ]
+    },
+    {
+      "name": "schemaProblems",
+      "description": "Problems that make the schema itself unusable (unsupported keyword, wrong shape, unresolved reference); empty when fine.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "schema",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        }
+      ],
+      "result": {
+        "name": "problems",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "getRule",
+      "description": "Read one rule by path. Without a fallback, a missing path throws; with one, the fallback is returned.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "rules",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "A rule path such as \"blinds.level_duration_seconds\" or \"blinds.levels[2].big_blind\"."
+          }
+        },
+        {
+          "name": "fallback",
+          "required": false,
+          "schema": {},
+          "description": "Returned when the path is missing."
+        }
+      ],
+      "result": {
+        "name": "value",
+        "schema": {}
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/NoRule"
+        }
+      ]
+    },
+    {
+      "name": "hasRule",
+      "description": "True when the rules have a value at the path.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "rules",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "A rule path such as \"blinds.level_duration_seconds\" or \"blinds.levels[2].big_blind\"."
+          }
+        }
+      ],
+      "result": {
+        "name": "has",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "ruleRows",
+      "description": "Flatten rules to rows for a rules page: one row per value with the schema's description for it. Arrays of plain values stay on one row; arrays of objects get a row per field with an index in the path.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "rules",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "schema",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        }
+      ],
+      "result": {
+        "name": "rows",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Row"
+          }
+        }
+      }
+    },
+    {
+      "name": "deepFreeze",
+      "description": "Freeze a value and everything inside it; returns the same value.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "value",
+          "required": true,
+          "schema": {}
+        }
+      ],
+      "result": {
+        "name": "value",
+        "schema": {}
+      }
+    },
+    {
+      "name": "createRulesSettings",
+      "description": "The engine's reader over checked rules.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "rules",
+          "required": true,
+          "schema": {}
+        }
+      ],
+      "result": {
+        "name": "reader",
+        "schema": {
+          "$ref": "#/components/schemas/RulesReader"
+        }
+      }
+    },
+    {
+      "name": "RulesReader.rules",
+      "description": "The checked rules.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "rules",
+        "schema": {}
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "RulesReader.value",
+      "description": "The rule at the path; undefined (absent) when the rules have none.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "A rule path such as \"blinds.level_duration_seconds\" or \"blinds.levels[2].big_blind\"."
+          }
+        }
+      ],
+      "result": {
+        "name": "value",
+        "schema": {}
+      }
+    },
+    {
+      "name": "RulesReader.has",
+      "description": "True when the rules have a value at the path (hasRule).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "A rule path such as \"blinds.level_duration_seconds\" or \"blinds.levels[2].big_blind\"."
+          }
+        }
+      ],
+      "result": {
+        "name": "has",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "readSchema",
+      "description": "Server: read a schema file; defaults to the envelope schema shipped with the component (schema_version, ruleset_id, game).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "file",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "description": "The schema file. A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        }
+      ],
+      "result": {
+        "name": "schema",
+        "schema": {
+          "$ref": "#/components/schemas/Schema"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/NotASchema"
+        }
+      ]
+    },
+    {
+      "name": "loadRulesFile",
+      "description": "Server: load, check and freeze a rules file. Returns the problems instead of throwing when the rules are wrong or unreadable.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "rulesFile",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "The rules file. A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        },
+        {
+          "name": "schemaFile",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "description": "Defaults to the envelope schema. A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "parsed",
+        "schema": {
+          "$ref": "#/components/schemas/Parsed"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/UnusableSchema"
+        },
+        {
+          "$ref": "#/components/errors/NotASchema"
+        }
+      ]
+    },
+    {
+      "name": "requireRules",
+      "description": "Server, for startup: the checked rules, or an error listing every problem so the game refuses to start on bad rules.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "rulesFile",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "The rules file. A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        },
+        {
+          "name": "schemaFile",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "description": "Defaults to the envelope schema. A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Options"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "rules",
+        "schema": {}
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/InvalidRules"
+        },
+        {
+          "$ref": "#/components/errors/UnusableSchema"
+        },
+        {
+          "$ref": "#/components/errors/NotASchema"
+        }
+      ]
+    },
+    {
+      "name": "rulesLocation",
+      "description": "Server: where a rules file and its schema are, <folder>/<name>.json and <folder>/<name>.schema.json. A URL folder gives URLs.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "name",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$",
+            "default": "house-rules"
+          }
+        },
+        {
+          "name": "folder",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "description": "Defaults to \"rules\". A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        }
+      ],
+      "result": {
+        "name": "location",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "rulesFile": {
+              "type": "string"
+            },
+            "schemaFile": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "rulesFile",
+            "schemaFile"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadName"
+        }
+      ]
+    },
+    {
+      "name": "loadRulesSettings",
+      "description": "Server, for an engine's startup: load and check the named rules file against its own schema and return the reader. Throws with every problem listed when the rules are wrong.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/RulesSettings"
+          },
+          "description": "Defaults to {} (house-rules, strict)."
+        },
+        {
+          "name": "folder",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "description": "Defaults to \"rules\". A path, or a URL (a URL object in TypeScript, given here as its href)."
+          }
+        }
+      ],
+      "result": {
+        "name": "reader",
+        "schema": {
+          "$ref": "#/components/schemas/RulesReader"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadName"
+        },
+        {
+          "$ref": "#/components/errors/InvalidRules"
+        },
+        {
+          "$ref": "#/components/errors/UnusableSchema"
+        },
+        {
+          "$ref": "#/components/errors/NotASchema"
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Schema": {
+        "type": "object",
+        "description": "A rules schema in the supported subset of JSON Schema."
+      },
+      "Options": {
+        "type": "object",
+        "properties": {
+          "strict": {
+            "type": "boolean",
+            "description": "Treat every object schema without an explicit additionalProperties as closed: unknown fields are errors."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Rule path, or \"(whole file)\"."
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "Parsed": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": true
+              },
+              "rules": {
+                "description": "The checked rules, deeply frozen."
+              }
+            },
+            "required": [
+              "ok",
+              "rules"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": false
+              },
+              "problems": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Problem"
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "ok",
+              "problems"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Row": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "value": {},
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "value",
+          "description"
+        ],
+        "additionalProperties": false
+      },
+      "RulesReader": {
+        "type": "object",
+        "description": "The object createRulesSettings and loadRulesSettings return; its members are the `RulesReader.<name>` methods."
+      },
+      "RulesSettings": {
+        "type": "object",
+        "properties": {
+          "rulesFile": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$",
+            "default": "house-rules"
+          },
+          "strict": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "The installer's settings."
+      }
+    },
+    "errors": {
+      "UnusableSchema": {
+        "code": 1001,
+        "message": "unusable schema: <problems>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "NoRule": {
+        "code": 1002,
+        "message": "no rule at <path>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "NotASchema": {
+        "code": 1003,
+        "message": "<file> is not a schema",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "InvalidRules": {
+        "code": 1004,
+        "message": "rules file <file> is not valid: <path>: <message> for every problem",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadName": {
+        "code": 1005,
+        "message": "a rules file name is a lower-case slug such as house-rules",
+        "data": {
+          "thrown": "RangeError"
+        }
+      }
+    }
+  }
+}

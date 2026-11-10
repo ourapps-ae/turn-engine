@@ -1,6 +1,6 @@
 {
   "name": "turn-engine",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "title": "Turn engine",
   "description": "The game-independent engine behind a multiplayer table: lifecycle, checked actions with error codes, turn order, scheduled steps, and the GameAdapter that realtime-rooms calls. It drives a game through the game-rules interface and composes seating, clock, views, presence, tournament, computer players, history and settings by injection.",
   "facilities": [
@@ -38,56 +38,56 @@
       "id": "game-rules",
       "type": "ae/game-rules",
       "version": "1.0.0",
-      "path": "interfaces/required/game-rules.json"
+      "path": "interfaces/required-game-rules.json"
     },
     {
       "id": "seating",
       "type": "ae/seating",
       "version": "1.0.0",
-      "path": "interfaces/required/seating.json"
+      "path": "interfaces/required-seating.json"
     },
     {
       "id": "game-clock",
       "type": "ae/game-clock",
       "version": "1.0.0",
-      "path": "interfaces/required/game-clock.json"
+      "path": "interfaces/required-game-clock.json"
     },
     {
       "id": "private-views",
       "type": "ae/private-views",
       "version": "1.0.0",
-      "path": "interfaces/required/private-views.json"
+      "path": "interfaces/required-private-views.json"
     },
     {
       "id": "presence",
       "type": "ae/presence",
       "version": "1.0.0",
-      "path": "interfaces/required/presence.json"
+      "path": "interfaces/required-presence.json"
     },
     {
       "id": "tournament",
       "type": "ae/tournament",
       "version": "1.0.0",
-      "path": "interfaces/required/tournament.json"
+      "path": "interfaces/required-tournament.json"
     },
     {
       "id": "computer-players",
       "type": "ae/computer-players",
       "version": "1.0.0",
-      "path": "interfaces/required/computer-players.json",
+      "path": "interfaces/required-computer-players.json",
       "optional": true
     },
     {
       "id": "round-history",
       "type": "ae/round-history",
       "version": "1.0.0",
-      "path": "interfaces/required/round-history.json"
+      "path": "interfaces/required-round-history.json"
     },
     {
       "id": "rules-settings",
       "type": "ae/rules-settings",
       "version": "1.0.0",
-      "path": "interfaces/required/rules-settings.json"
+      "path": "interfaces/required-rules-settings.json"
     }
   ],
   "collect": [

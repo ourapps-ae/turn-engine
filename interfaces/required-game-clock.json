@@ -1,0 +1,893 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/game-clock",
+    "version": "1.0.0",
+    "description": "Game clocks as pure functions over an injected `now` (epoch milliseconds). The caller says which clocks run between two readings (create, advance, reset, elapsed, wallAt); pauses and holds belong to presence and are not stored here. The action clock times decisions, runouts, result holds and offers; the level clock times stake levels. Timers (after, startDecision, startThinking, renewIfPresent, delay, isDue, remainingMs, settleLeftMs, timeoutAction, nextWake) read the action clock. Server: TypeScript `implementation/server/clock.ts`. Client countdowns: TypeScript `implementation/web/countdown.ts` (remaining, endsAt, formatClock), Swift `implementation/apple/Sources/Countdown.swift` and Kotlin `ae.clock` `Countdown.kt` (remaining, formatClock). Every function returns a new value."
+  },
+  "methods": [
+    {
+      "name": "create",
+      "description": "A new pair of clocks at zero, last updated at `now`.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        }
+      ],
+      "result": {
+        "name": "clock",
+        "schema": {
+          "$ref": "#/components/schemas/ClockState"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNow"
+        }
+      ]
+    },
+    {
+      "name": "advance",
+      "description": "Add the time since the last update to each clock that runs; a clock that does not run stands still. A `now` earlier than the last update adds nothing and the last update never moves back.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        },
+        {
+          "name": "runs",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Runs"
+          }
+        }
+      ],
+      "result": {
+        "name": "clock",
+        "schema": {
+          "$ref": "#/components/schemas/ClockState"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNow"
+        }
+      ]
+    },
+    {
+      "name": "reset",
+      "description": "Both clocks back to zero, as at the start of a game.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        }
+      ],
+      "result": {
+        "name": "clock",
+        "schema": {
+          "$ref": "#/components/schemas/ClockState"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNow"
+        }
+      ]
+    },
+    {
+      "name": "elapsed",
+      "description": "Running milliseconds on one clock.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "which",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockName"
+          }
+        }
+      ],
+      "result": {
+        "name": "ms",
+        "schema": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadClockName"
+        }
+      ]
+    },
+    {
+      "name": "wallAt",
+      "description": "The epoch time at which `which` reaches `targetMs` if it keeps running from the last update; never before the last update.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "clock",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "which",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockName"
+          }
+        },
+        {
+          "name": "targetMs",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": "number",
+          "description": "Epoch milliseconds."
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadTarget"
+        },
+        {
+          "$ref": "#/components/errors/BadClockName"
+        }
+      ]
+    },
+    {
+      "name": "validateSettings",
+      "description": "Fill defaults (decisionSeconds 30, onTimeout check-or-fold) and check the settings.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialClockSettings"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/ClockSettings"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadDecisionSeconds"
+        },
+        {
+          "$ref": "#/components/errors/BadOnTimeout"
+        }
+      ]
+    },
+    {
+      "name": "decisionMs",
+      "description": "The decision time in milliseconds.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockSettings"
+          }
+        }
+      ],
+      "result": {
+        "name": "ms",
+        "schema": {
+          "type": "integer",
+          "minimum": 1000
+        }
+      }
+    },
+    {
+      "name": "after",
+      "description": "The action-clock deadline `ms` from now.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "ms",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "deadline",
+        "schema": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMs"
+        }
+      ]
+    },
+    {
+      "name": "startDecision",
+      "description": "A human's decision: settle first, then the full decision time. An absent player gets the settle only, so the game acts for them as soon as it ends.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockSettings"
+          }
+        },
+        {
+          "name": "options",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "settleMs": {
+                "type": "number",
+                "minimum": 0
+              },
+              "absent": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "settleMs"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "timer",
+        "schema": {
+          "$ref": "#/components/schemas/Timer"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMs"
+        }
+      ]
+    },
+    {
+      "name": "startThinking",
+      "description": "A computer player's move: no earlier than `minMs` after now and after the settle, plus a thinking time the caller draws from its random source.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "options",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "settleMs": {
+                "type": "number",
+                "minimum": 0
+              },
+              "minMs": {
+                "type": "number",
+                "minimum": 0
+              },
+              "thinkMs": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "settleMs",
+              "minMs",
+              "thinkMs"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "timer",
+        "schema": {
+          "$ref": "#/components/schemas/Timer"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadThinking"
+        },
+        {
+          "$ref": "#/components/errors/BadMs"
+        }
+      ]
+    },
+    {
+      "name": "renewIfPresent",
+      "description": "A timer that ran out while its player was absent, but the player is back: a full countdown from the end of the settle. Otherwise the timer unchanged.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "timer",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Timer"
+          }
+        },
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockSettings"
+          }
+        },
+        {
+          "name": "present",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "timer",
+        "schema": {
+          "$ref": "#/components/schemas/Timer"
+        }
+      }
+    },
+    {
+      "name": "delay",
+      "description": "Push a timer later, for example to make room for the time cards take to deal.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "timer",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Timer"
+          }
+        },
+        {
+          "name": "ms",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "timer",
+        "schema": {
+          "$ref": "#/components/schemas/Timer"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMs"
+        }
+      ]
+    },
+    {
+      "name": "isDue",
+      "description": "True when there is a deadline and the action clock has reached it.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "deadline",
+          "required": true,
+          "schema": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "description": "An action-clock deadline, or null when there is none."
+        }
+      ],
+      "result": {
+        "name": "due",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "remainingMs",
+      "description": "Milliseconds left on a deadline (0 when due), or null when there is none.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "deadline",
+          "required": true,
+          "schema": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "description": "An action-clock deadline, or null when there is none."
+        }
+      ],
+      "result": {
+        "name": "ms",
+        "schema": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "settleLeftMs",
+      "description": "Milliseconds of the settle still to run, or 0.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "timer",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Timer"
+          }
+        }
+      ],
+      "result": {
+        "name": "ms",
+        "schema": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "timeoutAction",
+      "description": "What the game should do for a player whose time ran out. `canCheck` is whether checking costs nothing.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockSettings"
+          }
+        },
+        {
+          "name": "canCheck",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "action",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "check",
+            "fold",
+            "none"
+          ]
+        }
+      }
+    },
+    {
+      "name": "nextWake",
+      "description": "Wall time at which the earliest deadline falls due if the action clock keeps running from the last update, or null when nothing is waiting. `extraWakes` are wall times from outside (presence timeouts), included as they are.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClockState"
+          }
+        },
+        {
+          "name": "deadlines",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          }
+        },
+        {
+          "name": "extraWakes",
+          "required": false,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "description": "Epoch milliseconds."
+            }
+          },
+          "description": "Defaults to []."
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Epoch milliseconds."
+        }
+      }
+    },
+    {
+      "name": "remaining",
+      "description": "Client: milliseconds left now on a server countdown that had `leftAtView` left when the view was built and arrived at `viewAt`; null when there is no countdown. A frozen game shows the value as sent and a device clock that moved backwards adds no time. Swift `remaining(_:viewAt:now:paused:)` takes Dates; Kotlin `remaining(remainingMs, viewAt, now, paused)` takes Longs.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "leftAtView",
+          "required": true,
+          "schema": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        },
+        {
+          "name": "viewAt",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        },
+        {
+          "name": "frozen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "ms",
+        "schema": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "endsAt",
+      "description": "Client (web): wall time at which a running countdown reaches zero, for a ticking display; null when frozen or absent.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "leftAtView",
+          "required": true,
+          "schema": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          }
+        },
+        {
+          "name": "viewAt",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        },
+        {
+          "name": "frozen",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Epoch milliseconds."
+        }
+      }
+    },
+    {
+      "name": "formatClock",
+      "description": "Client: \"m:ss\", rounding up so a clock never shows 0:00 while time is left.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "ms",
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ],
+      "result": {
+        "name": "text",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9]+:[0-5][0-9]$"
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ClockName": {
+        "type": "string",
+        "enum": [
+          "action",
+          "level"
+        ]
+      },
+      "OnTimeout": {
+        "type": "string",
+        "enum": [
+          "check-or-fold",
+          "fold",
+          "none"
+        ],
+        "description": "check-or-fold: check when that costs nothing, otherwise fold; fold: fold; none: nothing, the game keeps waiting."
+      },
+      "ClockSettings": {
+        "type": "object",
+        "properties": {
+          "decisionSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "onTimeout": {
+            "$ref": "#/components/schemas/OnTimeout"
+          }
+        },
+        "required": [
+          "decisionSeconds",
+          "onTimeout"
+        ],
+        "additionalProperties": false
+      },
+      "PartialClockSettings": {
+        "type": "object",
+        "properties": {
+          "decisionSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "onTimeout": {
+            "$ref": "#/components/schemas/OnTimeout"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ClockState": {
+        "type": "object",
+        "properties": {
+          "clockAt": {
+            "type": "number",
+            "description": "Wall time of the last update, epoch milliseconds."
+          },
+          "actionMs": {
+            "type": "number",
+            "minimum": 0
+          },
+          "levelMs": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "clockAt",
+          "actionMs",
+          "levelMs"
+        ],
+        "additionalProperties": false
+      },
+      "Runs": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "boolean"
+          },
+          "level": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "action",
+          "level"
+        ],
+        "additionalProperties": false,
+        "description": "Which clocks run between the last update and now."
+      },
+      "Timer": {
+        "type": "object",
+        "properties": {
+          "settleUntil": {
+            "type": "number"
+          },
+          "deadline": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "settleUntil",
+          "deadline"
+        ],
+        "additionalProperties": false,
+        "description": "A decision timer in action-clock milliseconds. The settle is the quiet time to take in what just happened."
+      }
+    },
+    "errors": {
+      "BadNow": {
+        "code": 1001,
+        "message": "now must be a number",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadClockName": {
+        "code": 1002,
+        "message": "which must be action or level",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadTarget": {
+        "code": 1003,
+        "message": "targetMs must be a number",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadDecisionSeconds": {
+        "code": 1004,
+        "message": "decisionSeconds must be a whole number of at least 1",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadOnTimeout": {
+        "code": 1005,
+        "message": "onTimeout must be one of check-or-fold, fold, none",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadMs": {
+        "code": 1006,
+        "message": "ms must be a number of 0 or more",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadThinking": {
+        "code": 1007,
+        "message": "minMs and thinkMs must be numbers of 0 or more",
+        "data": {
+          "thrown": "RangeError"
+        }
+      }
+    }
+  }
+}

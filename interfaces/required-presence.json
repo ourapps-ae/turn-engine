@@ -1,0 +1,2140 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/presence",
+    "version": "1.0.0",
+    "description": "Who is present, who has gone quiet, and whether the activity pauses or carries on (TypeScript module server/presence.ts). Pure functions over plain JSON state; the caller supplies the clock and keeps the state. Participant ids are the ids guest-identity issues; automatic participants (computer players) are always present. Presence is the one owner of pause flags (hostAbsent, allOffline, manual) and holds (look, learn); an engine derives game-clock run flags from them. Events: a request from a participant is seen; a live connection opening or closing is setLive; the application going to the background is away; time passing is refresh. Methods named PresenceApi.* are the functions of createPresenceApi(settings), which a turn engine calls.",
+    "license": {
+      "name": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "methods": [
+    {
+      "name": "createPresence",
+      "description": "An empty state with the given host.",
+      "params": [
+        {
+          "name": "hostId",
+          "description": "Defaults to null.",
+          "required": false,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "find",
+      "description": "The participant with this id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "participant",
+        "description": "undefined in TypeScript when unknown.",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/Participant"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "addParticipant",
+      "description": "Adds a present participant (automatic and counts default to false and true); unchanged when the id is known.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "who",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "automatic": {
+                "type": "boolean"
+              },
+              "counts": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "additionalProperties": false
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "removeParticipant",
+      "description": "Removes the participant, their hold, and the host when it was them.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "setHost",
+      "description": "Sets the host.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "hostId",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "setCounts",
+      "description": "Sets whether the participant counts.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "counts",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "setManualPause",
+      "description": "Turns the manual pause on or off; without now, pausedSince is set by the next refresh.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "on",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "now",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "seen",
+      "description": "A request from this participant arrived: present as of now, misses cleared when they had been absent.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "setLive",
+      "description": "A live connection opened (true) or the last one closed (false); the silence rule runs from now once it closes. Ignored for automatic participants.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "live",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "away",
+      "description": "The application went to the background or the participant left the screen: absent, hold ended.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "recordMiss",
+      "description": "Counts a decision taken for the participant while absent.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "refresh",
+      "description": "Participants silent longer than awayAfterSeconds with no live connection become absent; while active, the pause flags follow the host rule and whether anyone counted is present, and pausedSince is kept or cleared.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        },
+        {
+          "name": "settings",
+          "description": "Defaults to awayAfterSeconds 30, dropAfterSeconds 1800, hostAbsentRule pause.",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceSettings"
+          }
+        },
+        {
+          "name": "active",
+          "required": false,
+          "schema": {
+            "type": "boolean",
+            "description": "Defaults to true; false leaves the pause flags alone."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "isPaused",
+      "description": "hostAbsent, allOffline or manual.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "paused",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "pauseReasons",
+      "description": "The pause flags that are set, in the order hostAbsent, allOffline, manual.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "reasons",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PauseReason"
+          }
+        }
+      }
+    },
+    {
+      "name": "abandoned",
+      "description": "Everyone counted has been absent for dropAfterSeconds.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        },
+        {
+          "name": "settings",
+          "description": "Defaults to awayAfterSeconds 30, dropAfterSeconds 1800, hostAbsentRule pause.",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceSettings"
+          }
+        }
+      ],
+      "result": {
+        "name": "abandoned",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "nextCheck",
+      "description": "The next wall time refresh or abandoned could change something, or null.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "settings",
+          "description": "Defaults to awayAfterSeconds 30, dropAfterSeconds 1800, hostAbsentRule pause.",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceSettings"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    },
+    {
+      "name": "silentIds",
+      "description": "Participants not heard from for longer than the given time and with no live connection.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        },
+        {
+          "name": "olderThanSeconds",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "ids",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "absentIds",
+      "description": "Participants that are not automatic and not connected.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "ids",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "sitOut",
+      "description": "The participant skips turns until returned.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "returned",
+      "description": "Back: not sitting out, no misses, present as of now.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "leftGame",
+      "description": "Left a running activity: sitting out and absent; their hold ends.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "isConnected",
+      "description": "False for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "connected",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "isLive",
+      "description": "False for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "live",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "isSittingOut",
+      "description": "False for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "sittingOut",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "misses",
+      "description": "0 for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "misses",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "lastSeen",
+      "description": "0 for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "lastSeen",
+        "schema": {
+          "type": "integer",
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    },
+    {
+      "name": "isManualPause",
+      "description": "The manual pause flag.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "manual",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "pausedSince",
+      "description": "Wall time the activity first paused, or null.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    },
+    {
+      "name": "setHold",
+      "description": "Takes (look or learn) or releases (null) a hold: only a person in the activity, only while running, a look only while a result shows.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "kind",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HoldKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "running": {
+                "type": "boolean",
+                "description": "The activity is running."
+              },
+              "roundOver": {
+                "type": "boolean",
+                "description": "A result is showing."
+              }
+            },
+            "required": [
+              "running",
+              "roundOver"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "isHeld",
+      "description": "Anyone holds the clock.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "held",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "holds",
+      "description": "Copies of the holds in the order taken.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "holds",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Hold"
+          }
+        }
+      }
+    },
+    {
+      "name": "refreshFor",
+      "description": "refresh for an engine that owns the roster: the silence rule; holds end when not running, when their person is absent, and for a look once no result shows; while running, counts follow activeIds and the pause flags follow context.hostId.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        },
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceSettings"
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/RefreshContext"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "restart",
+      "description": "A new game or lobby: keeps these participants with sitting out and misses cleared, and no pauses or holds.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "keepIds",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "nextSilence",
+      "description": "The next wall time the silence rule marks someone absent, or null (nextCheck without the drop period).",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "settings",
+          "description": "Defaults to awayAfterSeconds 30, dropAfterSeconds 1800, hostAbsentRule pause.",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceSettings"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    },
+    {
+      "name": "validateSettings",
+      "description": "The settings with defaults filled in, checked.",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialPresenceSettings"
+          }
+        }
+      ],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceSettings"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/SettingsRangeError"
+        }
+      ]
+    },
+    {
+      "name": "createPresenceApi",
+      "description": "The object an engine calls, with the settings validated and bound.",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialPresenceSettings"
+          }
+        }
+      ],
+      "result": {
+        "name": "api",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceApi"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/SettingsRangeError"
+        }
+      ]
+    },
+    {
+      "name": "PresenceApi.create",
+      "description": "An empty state with no host.",
+      "params": [],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.register",
+      "description": "Adds a participant; a computer is automatic, never absent.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        },
+        {
+          "name": "kind",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "person",
+              "computer"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.unregister",
+      "description": "Removes the participant; their hold ends.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.restart",
+      "description": "A new game or lobby: keeps these participants with sitting out and misses cleared, and no pauses or holds.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "keepIds",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.seen",
+      "description": "A request from this participant arrived: present as of now, misses cleared when they had been absent.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.setLive",
+      "description": "A live connection opened (true) or the last one closed (false); the silence rule runs from now once it closes. Ignored for automatic participants.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "live",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.away",
+      "description": "The application went to the background or the participant left the screen: absent, hold ended.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.sitOut",
+      "description": "The participant skips turns until returned.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.returned",
+      "description": "Back: not sitting out, no misses, present as of now.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.leftGame",
+      "description": "Left a running activity: sitting out and absent; their hold ends.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.recordMiss",
+      "description": "Counts a decision taken for the participant while absent.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.isConnected",
+      "description": "False for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "connected",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.isLive",
+      "description": "False for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "live",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.isSittingOut",
+      "description": "False for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "sittingOut",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.misses",
+      "description": "0 for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "misses",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.lastSeen",
+      "description": "0 for an unknown id.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        }
+      ],
+      "result": {
+        "name": "lastSeen",
+        "schema": {
+          "type": "integer",
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.setManualPause",
+      "description": "Turns the manual pause on or off; without now, pausedSince is set by the next refresh.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "on",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "now",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.setHold",
+      "description": "Takes (look or learn) or releases (null) a hold: only a person in the activity, only while running, a look only while a result shows.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "description": "Participant id (as guest-identity issues)."
+          }
+        },
+        {
+          "name": "kind",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HoldKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "running": {
+                "type": "boolean",
+                "description": "The activity is running."
+              },
+              "roundOver": {
+                "type": "boolean",
+                "description": "A result is showing."
+              }
+            },
+            "required": [
+              "running",
+              "roundOver"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.isPaused",
+      "description": "hostAbsent, allOffline or manual.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "paused",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.pauseReasons",
+      "description": "The pause flags that are set, in the order hostAbsent, allOffline, manual.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "reasons",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PauseReason"
+          }
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.isManualPause",
+      "description": "The manual pause flag.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "manual",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.pausedSince",
+      "description": "Wall time the activity first paused, or null.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.isHeld",
+      "description": "Anyone holds the clock.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "held",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.holds",
+      "description": "Copies of the holds in the order taken.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "holds",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Hold"
+          }
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.refresh",
+      "description": "refreshFor with the bound settings.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        },
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "description": "Milliseconds since the epoch."
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/RefreshContext"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "description": "The same state object comes back when nothing changes.",
+        "schema": {
+          "$ref": "#/components/schemas/PresenceState"
+        }
+      }
+    },
+    {
+      "name": "PresenceApi.nextWake",
+      "description": "nextSilence with the bound settings.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceState"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Milliseconds since the epoch."
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "HostAbsentRule": {
+        "type": "string",
+        "enum": [
+          "pause",
+          "continue"
+        ]
+      },
+      "PresenceSettings": {
+        "type": "object",
+        "properties": {
+          "awayAfterSeconds": {
+            "type": "integer",
+            "description": "Silence after which a participant without a live connection is absent; defaults to 30.",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "dropAfterSeconds": {
+            "type": "integer",
+            "description": "How long everyone counted may be absent before the activity is abandoned; defaults to 1800.",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "hostAbsentRule": {
+            "$ref": "#/components/schemas/HostAbsentRule",
+            "description": "pause: the activity pauses while the host is absent; defaults to pause."
+          }
+        },
+        "required": [
+          "awayAfterSeconds",
+          "dropAfterSeconds",
+          "hostAbsentRule"
+        ],
+        "additionalProperties": false
+      },
+      "PartialPresenceSettings": {
+        "type": "object",
+        "properties": {
+          "awayAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "dropAfterSeconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "hostAbsentRule": {
+            "$ref": "#/components/schemas/HostAbsentRule"
+          }
+        },
+        "required": [],
+        "additionalProperties": false,
+        "description": "Any of the settings; the rest take their defaults."
+      },
+      "PauseReason": {
+        "type": "string",
+        "enum": [
+          "hostAbsent",
+          "allOffline",
+          "manual"
+        ]
+      },
+      "HoldKind": {
+        "type": "string",
+        "enum": [
+          "look",
+          "learn"
+        ],
+        "description": "look: looking at a result; learn: reading a guide."
+      },
+      "Hold": {
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/HoldKind"
+          }
+        },
+        "required": [
+          "playerId",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "Participant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "automatic": {
+            "type": "boolean",
+            "description": "A computer player: always present."
+          },
+          "counts": {
+            "type": "boolean",
+            "description": "Takes part in the activity (counted for allOffline)."
+          },
+          "connected": {
+            "type": "boolean",
+            "description": "Present."
+          },
+          "live": {
+            "type": "boolean",
+            "description": "A live connection is open: present without making requests."
+          },
+          "lastSeen": {
+            "type": "integer",
+            "description": "Last request or live change, milliseconds since the epoch."
+          },
+          "misses": {
+            "type": "integer",
+            "description": "Decisions taken for this participant while absent; cleared when seen again.",
+            "minimum": 0
+          },
+          "sittingOut": {
+            "type": "boolean",
+            "description": "Skips turns until returned."
+          }
+        },
+        "required": [
+          "id",
+          "automatic",
+          "counts",
+          "connected",
+          "live",
+          "lastSeen",
+          "misses",
+          "sittingOut"
+        ],
+        "additionalProperties": false
+      },
+      "PauseFlags": {
+        "type": "object",
+        "properties": {
+          "hostAbsent": {
+            "type": "boolean"
+          },
+          "allOffline": {
+            "type": "boolean"
+          },
+          "manual": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "hostAbsent",
+          "allOffline",
+          "manual"
+        ],
+        "additionalProperties": false
+      },
+      "PresenceState": {
+        "type": "object",
+        "properties": {
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Participant"
+            }
+          },
+          "hostId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pause": {
+            "$ref": "#/components/schemas/PauseFlags"
+          },
+          "pausedSince": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Wall time the activity first paused, or null while not paused."
+          },
+          "holds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Hold"
+            },
+            "description": "Participants whose hold stops the clock for everyone, in the order taken."
+          }
+        },
+        "required": [
+          "participants",
+          "hostId",
+          "pause",
+          "pausedSince",
+          "holds"
+        ],
+        "additionalProperties": false,
+        "description": "Plain JSON state; the caller keeps it and supplies the clock."
+      },
+      "RefreshContext": {
+        "type": "object",
+        "properties": {
+          "hostId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "running": {
+            "type": "boolean",
+            "description": "While false, holds end and the pause flags are left alone."
+          },
+          "roundOver": {
+            "type": "boolean",
+            "description": "A result is showing; a look hold ends without one."
+          },
+          "activeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The people still in the activity; their counts follow it."
+          }
+        },
+        "required": [
+          "hostId",
+          "running",
+          "roundOver",
+          "activeIds"
+        ],
+        "additionalProperties": false
+      },
+      "PresenceApi": {
+        "type": "object",
+        "description": "createPresenceApi's object: the settings and the PresenceApi.* methods, with the settings bound. Operations that change nothing return the same object they were given.",
+        "required": [
+          "settings"
+        ],
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/PresenceSettings"
+          }
+        },
+        "additionalProperties": {
+          "description": "Function one of the PresenceApi.* methods."
+        }
+      }
+    },
+    "errors": {
+      "SettingsRangeError": {
+        "code": 1,
+        "message": "RangeError",
+        "data": {
+          "type": "string",
+          "enum": [
+            "awayAfterSeconds must be a whole number of at least 1",
+            "dropAfterSeconds must be a whole number of at least 1",
+            "hostAbsentRule must be pause or continue"
+          ]
+        }
+      }
+    }
+  }
+}

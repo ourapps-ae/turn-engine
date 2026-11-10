@@ -1,127 +1,2240 @@
 {
-  "id": "game-adapter",
-  "type": "ae/game-adapter",
-  "version": "1.0.0",
-  "notes": "The GameAdapter that realtime-rooms calls (14 methods, same signatures as realtime-rooms/implementation/server/adapter.ts). Built by createGameAdapter(parts, settings) where parts holds one implementation of each required interface. State is JSON-serialisable and every method is pure. Wire actions: start, addBot, kick{playerId}, leave, sitOut, return, pause, resume, cancel, newGame, rebuy{accept}, and any move game-rules.parseMove accepts. Error codes and HTTP status: badName 400, badRequest 400, roomFull 409, staleVersion 409, badToken/notYourTurn/wrongPhase/notEnoughPlayers/badAmount/badTarget/notAllowed/paused/unknownPlayer 422. A code a game reports that is not in this list is sent as notAllowed. Without a computer-players part (Parts.computers omitted) addBot is refused and no seat is filled.",
-  "settings": {
-    "decisionSeconds": "integer or null; seconds a person has to move; null reads rules-settings timing.decision_seconds, then 30",
-    "settleMs": "integer, default 4000; the table settles this long after a deal or a move before the countdown starts",
-    "staleMinutes": "integer, default 30; an idle lobby or ended table is emptied, a table paused with nobody connected is cancelled",
-    "standingsSeconds": "integer, default 20; standings stay up this long, then the room is a lobby again",
-    "lobbyDropSeconds": "integer, default 60; a lobby seat whose person has not been heard from this long is given up"
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/game-adapter",
+    "version": "1.0.0",
+    "description": "The GameAdapter a room server calls (realtime-rooms), over a turn engine that drives any game written to ae/game-rules. Build it with createGameAdapter(parts, settings), where parts holds one implementation of each required interface; methods named `GameAdapter.<name>` are members of the object it returns. State is JSON-serialisable and every method is pure. Wire actions: start, addBot, kick {playerId}, leave, sitOut, return, pause, resume, cancel, newGame, rebuy {accept}, and any move the game's parseMove accepts. Error codes and HTTP status: badName 400, badRequest 400, roomFull 409, staleVersion 409, badToken, notYourTurn, wrongPhase, notEnoughPlayers, badAmount, badTarget, notAllowed, paused, unknownPlayer 422; a code a game reports that is not in this list is sent as notAllowed. Without a computer-players part (parts.computers omitted) addBot is refused and no seat is filled. TypeScript, `implementation/server/adapter.ts` (engine.ts, parts.ts, no-computers.ts)."
   },
-  "types": {
-    "Result<T>": "{ok:true,value:T}|{ok:false,error:{code:string,message:string,status:400|409|422}}",
-    "Deps": "{now:()=>number,rng:()=>number,newId:()=>string}",
-    "Actor": "{id:string,role:player|spectator|display}",
-    "Presence": "{type:request-seen,id}|{type:live-members,ids}|{type:away,id}|{type:last-connection-close,id,deliberate}",
-    "View": "{version,roomId,gameNumber,you,display,status,phase:lobby|acting|auto|over|offers|completed|cancelled,pauseReasons,holds,hostId,players:PlayerRow[],round:RoundView|null,game:unknown|null,lastResult:unknown|null,clock:unknown|null,rebuyOffers:{playerId,remainingMs}[],winnerId,history,legal:Legal,prompt,promptKey,promptArgs}",
-    "PlayerRow": "{id,name,seat,isBot,isHost,stack,status:in|out,place,connected,sittingOut,rebuysUsed,game:Record|null}",
-    "RoundView": "{no,level,stage:acting|auto|over,actorId,remainingMs,settleMs,event,lastActorId}",
-    "Legal": "{start,addBot,kick,leave,sitOut,return,rebuy,pause,resume,cancel,newGame,game:unknown}"
-  },
-  "operations": {
-    "create": {
-      "arguments": [
-        "now:number"
+  "methods": [
+    {
+      "name": "createGameAdapter",
+      "description": "The adapter over a new engine.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "parts",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Parts"
+          }
+        },
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialEngineSettings"
+          },
+          "description": "Defaults to {}."
+        }
       ],
-      "returns": "EngineState (a lobby)"
+      "result": {
+        "name": "adapter",
+        "schema": {
+          "$ref": "#/components/schemas/GameAdapter"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadSettings"
+        }
+      ]
     },
-    "restore": {
-      "arguments": [
-        "saved:unknown",
-        "schema:number"
-      ],
-      "returns": "EngineState; throws Error('Unsupported game state.') unless schema is 1 and the shape is valid"
+    {
+      "name": "noComputers",
+      "description": "The stand-in the engine uses when parts.computers is omitted: nobody plays for a computer and none can be added or seated.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "noComputers",
+        "schema": {
+          "$ref": "#/components/schemas/ComputersPart"
+        }
+      },
+      "x-ourapps-property": true
     },
-    "options": {
-      "arguments": [
-        "input:unknown"
+    {
+      "name": "GameAdapter.create",
+      "description": "A new room: a lobby.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "now",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "description": "Epoch milliseconds."
+          }
+        }
       ],
-      "returns": "Result<Record<string,boolean>> (one boolean per game-rules.optionNames entry; true or \"1\" switches on)"
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/EngineState"
+        }
+      }
     },
-    "members": {
-      "arguments": [
-        "state"
+    {
+      "name": "GameAdapter.restore",
+      "description": "A saved state, checked.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "saved",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "schema",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "const": 1
+          },
+          "description": "The state schema number; only 1 is accepted."
+        }
       ],
-      "returns": "{id,name}[] in seat order"
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/EngineState"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/UnsupportedState"
+        }
+      ]
     },
-    "summary": {
-      "arguments": [
-        "state"
+    {
+      "name": "GameAdapter.options",
+      "description": "Per-connection options: one boolean per game-rules optionNames entry; true or \"1\" switches it on.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {}
+        }
       ],
-      "returns": "{status,playerCount,names}"
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "$ref": "#/components/schemas/Options"
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "error": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "required": [
+                "ok",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
     },
-    "clearSpectators": {
-      "arguments": [
-        "state"
+    {
+      "name": "GameAdapter.members",
+      "description": "Seated people and computers in seat order.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        }
       ],
-      "returns": "boolean (an empty lobby)"
+      "result": {
+        "name": "members",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
     },
-    "join": {
-      "arguments": [
-        "state",
-        "id:string",
-        "name:string",
-        "rejoining:boolean",
-        "deps:Deps"
+    {
+      "name": "GameAdapter.summary",
+      "description": "What a room list shows.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        }
       ],
-      "returns": "Result<{state,role:player|spectator}> (rejoining: marks seen and, in a game, returns from sitting out; a new person in a lobby sits; in a game they watch)"
+      "result": {
+        "name": "summary",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "$ref": "#/components/schemas/Status"
+            },
+            "playerCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "status",
+            "playerCount",
+            "names"
+          ],
+          "additionalProperties": false
+        }
+      }
     },
-    "parseAction": {
-      "arguments": [
-        "input:unknown"
+    {
+      "name": "GameAdapter.clearSpectators",
+      "description": "True for an empty lobby.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        }
       ],
-      "returns": "Result<{action,requiresVersion:boolean,leaves:boolean}> (badRequest for anything malformed)"
+      "result": {
+        "name": "clear",
+        "schema": {
+          "type": "boolean"
+        }
+      }
     },
-    "apply": {
-      "arguments": [
-        "state",
-        "actor:Actor",
-        "action",
-        "deps:Deps"
+    {
+      "name": "GameAdapter.join",
+      "description": "A person connects. rejoining: marks them seen and, in a running game, returns them from sitting out. A new person in a lobby sits down; in a game they watch.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "rejoining",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        },
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Deps"
+          }
+        }
       ],
-      "returns": "Result<state> (displays may do nothing; spectators may only leave or cancel)"
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "$ref": "#/components/schemas/EngineState"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "player",
+                        "spectator"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "role"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "error": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "required": [
+                "ok",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
     },
-    "presence": {
-      "arguments": [
-        "state",
-        "event:Presence",
-        "deps:Deps"
+    {
+      "name": "GameAdapter.parseAction",
+      "description": "Check a wire action. badRequest for anything malformed. requiresVersion is false and leaves true only for leave.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": true,
+          "schema": {}
+        }
       ],
-      "returns": "{state,changed:boolean}"
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "action": {
+                      "$ref": "#/components/schemas/EngineAction"
+                    },
+                    "requiresVersion": {
+                      "type": "boolean"
+                    },
+                    "leaves": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "action",
+                    "requiresVersion",
+                    "leaves"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "error": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "required": [
+                "ok",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
     },
-    "connection": {
-      "arguments": [
-        "state",
-        "actor:Actor",
-        "message:unknown",
-        "options",
-        "deps:Deps"
+    {
+      "name": "GameAdapter.apply",
+      "description": "Apply an action. A display may do nothing; a spectator may only leave or cancel.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        },
+        {
+          "name": "actor",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Actor"
+          }
+        },
+        {
+          "name": "action",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineAction"
+          }
+        },
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Deps"
+          }
+        }
       ],
-      "returns": "Result<{state,options,changed:boolean}> (messages: {type:'hold',kind:'look'|'learn'|null}, {type:'hello',hold}, and {type:<option name>,on:boolean})"
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "$ref": "#/components/schemas/EngineState"
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "error": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "required": [
+                "ok",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/DefaultMoveRefused"
+        },
+        {
+          "$ref": "#/components/errors/NoMoveAccepted"
+        },
+        {
+          "$ref": "#/components/errors/NoOutcome"
+        }
+      ]
     },
-    "advance": {
-      "arguments": [
-        "state",
-        "deps:Deps"
+    {
+      "name": "GameAdapter.presence",
+      "description": "A connection event from the room server.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        },
+        {
+          "name": "event",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PresenceEvent"
+          }
+        },
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Deps"
+          }
+        }
       ],
-      "returns": "{state,changed:boolean} (clocks, presence, everything due, then due computer moves, up to 60 in a row)"
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "$ref": "#/components/schemas/EngineState"
+            },
+            "changed": {
+              "type": "boolean",
+              "description": "True when someone's connection changed in a way clients should see."
+            }
+          },
+          "required": [
+            "state",
+            "changed"
+          ],
+          "additionalProperties": false
+        }
+      }
     },
-    "nextWake": {
-      "arguments": [
-        "state"
+    {
+      "name": "GameAdapter.connection",
+      "description": "A message on one connection: {type: \"hold\", kind: \"look\" | \"learn\" | null}, {type: \"hello\", hold}, or {type: <option name>, on: boolean}.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        },
+        {
+          "name": "actor",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Actor"
+          }
+        },
+        {
+          "name": "message",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "options",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Options"
+          }
+        },
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Deps"
+          }
+        }
       ],
-      "returns": "number|null (wall time)"
+      "result": {
+        "name": "result",
+        "schema": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": true
+                },
+                "value": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "$ref": "#/components/schemas/EngineState"
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/Options"
+                    },
+                    "changed": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "options",
+                    "changed"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "ok",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ok": {
+                  "const": false
+                },
+                "error": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              },
+              "required": [
+                "ok",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      }
     },
-    "view": {
-      "arguments": [
-        "state",
-        "actor:Actor|null",
-        "options",
-        "context:{version:number,roomId:string}"
+    {
+      "name": "GameAdapter.advance",
+      "description": "Run the clocks and presence, everything due, then due computer moves, up to 60 in a row.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        },
+        {
+          "name": "deps",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Deps"
+          }
+        }
       ],
-      "returns": "View (actor null or a display sees what everyone sees)"
+      "result": {
+        "name": "result",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "state": {
+              "$ref": "#/components/schemas/EngineState"
+            },
+            "changed": {
+              "type": "boolean",
+              "description": "True when anything changed."
+            }
+          },
+          "required": [
+            "state",
+            "changed"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/DefaultMoveRefused"
+        },
+        {
+          "$ref": "#/components/errors/NoMoveAccepted"
+        },
+        {
+          "$ref": "#/components/errors/NoOutcome"
+        }
+      ]
+    },
+    {
+      "name": "GameAdapter.nextWake",
+      "description": "Wall time (epoch milliseconds) at which something next falls due, or null.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        }
+      ],
+      "result": {
+        "name": "at",
+        "schema": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    {
+      "name": "GameAdapter.view",
+      "description": "What one viewer sees; actor null or a display sees what everyone sees.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/EngineState"
+          }
+        },
+        {
+          "name": "actor",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Actor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        {
+          "name": "options",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Options"
+          }
+        },
+        {
+          "name": "context",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "roomId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "version",
+              "roomId"
+            ],
+            "additionalProperties": false
+          }
+        }
+      ],
+      "result": {
+        "name": "view",
+        "schema": {
+          "$ref": "#/components/schemas/View"
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Status": {
+        "type": "string",
+        "enum": [
+          "lobby",
+          "running",
+          "completed",
+          "cancelled"
+        ]
+      },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "badName",
+          "badRequest",
+          "badToken",
+          "roomFull",
+          "staleVersion",
+          "notYourTurn",
+          "wrongPhase",
+          "notEnoughPlayers",
+          "badAmount",
+          "badTarget",
+          "notAllowed",
+          "paused",
+          "unknownPlayer"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "message": {
+            "type": "string",
+            "description": "English text for the code."
+          },
+          "status": {
+            "type": "integer",
+            "enum": [
+              400,
+              409,
+              422
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "Deps": {
+        "type": "object",
+        "description": "Injected time, randomness and ids.",
+        "properties": {
+          "now": {
+            "description": "A function now(): number, epoch milliseconds."
+          },
+          "rng": {
+            "description": "A function rng(): number, in [0, 1)."
+          },
+          "newId": {
+            "description": "A function newId(): string."
+          }
+        },
+        "required": [
+          "now",
+          "rng",
+          "newId"
+        ]
+      },
+      "Actor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "player",
+              "spectator",
+              "display"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "PresenceEvent": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "request-seen"
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "live-members"
+              },
+              "ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "type",
+              "ids"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "away"
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "last-connection-close"
+              },
+              "id": {
+                "type": "string"
+              },
+              "deliberate": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type",
+              "id",
+              "deliberate"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "Options": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "description": "Option name (game-rules optionNames) to on or off."
+      },
+      "EngineAction": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "start",
+                  "addBot",
+                  "leave",
+                  "sitOut",
+                  "return",
+                  "pause",
+                  "resume",
+                  "cancel",
+                  "newGame"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "kick"
+              },
+              "playerId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "playerId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "rebuy"
+              },
+              "accept": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type",
+              "accept"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "const": "move"
+              },
+              "move": {
+                "description": "The game's move, from its parseMove."
+              },
+              "needsTurn": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type",
+              "move",
+              "needsTurn"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "EngineSettings": {
+        "type": "object",
+        "properties": {
+          "decisionSeconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "Seconds a person has to move; null reads rules-settings timing.decision_seconds, then 30."
+          },
+          "settleMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 4000,
+            "description": "The table settles this long after a deal or a move before the countdown starts."
+          },
+          "staleMinutes": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 30,
+            "description": "An idle lobby or an ended table is emptied; a table paused with nobody connected is cancelled."
+          },
+          "standingsSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 20,
+            "description": "Standings stay up this long, then the room is a lobby again."
+          },
+          "lobbyDropSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 60,
+            "description": "A lobby seat whose person has not been heard from this long is given up."
+          }
+        },
+        "required": [
+          "decisionSeconds",
+          "settleMs",
+          "staleMinutes",
+          "standingsSeconds",
+          "lobbyDropSeconds"
+        ],
+        "additionalProperties": false
+      },
+      "PartialEngineSettings": {
+        "type": "object",
+        "properties": {
+          "decisionSeconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "Seconds a person has to move; null reads rules-settings timing.decision_seconds, then 30."
+          },
+          "settleMs": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 4000,
+            "description": "The table settles this long after a deal or a move before the countdown starts."
+          },
+          "staleMinutes": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 30,
+            "description": "An idle lobby or an ended table is emptied; a table paused with nobody connected is cancelled."
+          },
+          "standingsSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 20,
+            "description": "Standings stay up this long, then the room is a lobby again."
+          },
+          "lobbyDropSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 60,
+            "description": "A lobby seat whose person has not been heard from this long is given up."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Schedule": {
+        "type": "object",
+        "properties": {
+          "actorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "settleUntil": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "deadline": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "autoAt": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "overAt": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "event": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastActorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "actorId",
+          "settleUntil",
+          "deadline",
+          "autoAt",
+          "overAt",
+          "event",
+          "lastActorId"
+        ],
+        "additionalProperties": false,
+        "description": "When the actor's turn is timed; times are action-clock milliseconds."
+      },
+      "Slot": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "round": {
+            "description": "The game's round, opaque."
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "acting",
+              "auto",
+              "over"
+            ]
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "round",
+          "stage",
+          "schedule"
+        ],
+        "additionalProperties": false
+      },
+      "EngineState": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "const": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "gameNumber": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seats": {
+            "description": "seating's state, opaque to the engine (JSON)."
+          },
+          "presence": {
+            "description": "presence's state, opaque to the engine (JSON)."
+          },
+          "clock": {
+            "description": "game-clock's state, opaque to the engine (JSON)."
+          },
+          "tournament": {
+            "description": "tournament's state, opaque to the engine (JSON)."
+          },
+          "computers": {
+            "description": "computer-players's state, opaque to the engine (JSON)."
+          },
+          "history": {
+            "description": "round-history's state, opaque to the engine (JSON)."
+          },
+          "roundNo": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slot": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Slot"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "carry": {
+            "description": "The game's carry between rounds, or null."
+          },
+          "lastResult": {
+            "description": "The last round's result for clients, or null."
+          },
+          "lastActionAt": {
+            "type": "number"
+          },
+          "endedAt": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "schema",
+          "status",
+          "gameNumber",
+          "seats",
+          "presence",
+          "clock",
+          "tournament",
+          "computers",
+          "history",
+          "roundNo",
+          "slot",
+          "carry",
+          "lastResult",
+          "lastActionAt",
+          "endedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Legal": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "boolean"
+          },
+          "addBot": {
+            "type": "boolean"
+          },
+          "kick": {
+            "type": "boolean"
+          },
+          "leave": {
+            "type": "boolean"
+          },
+          "sitOut": {
+            "type": "boolean"
+          },
+          "return": {
+            "type": "boolean"
+          },
+          "rebuy": {
+            "type": "boolean"
+          },
+          "pause": {
+            "type": "boolean"
+          },
+          "resume": {
+            "type": "boolean"
+          },
+          "cancel": {
+            "type": "boolean"
+          },
+          "newGame": {
+            "type": "boolean"
+          },
+          "game": {
+            "description": "The game's own legal moves for this viewer (game-rules legal)."
+          }
+        },
+        "required": [
+          "start",
+          "addBot",
+          "kick",
+          "leave",
+          "sitOut",
+          "return",
+          "rebuy",
+          "pause",
+          "resume",
+          "cancel",
+          "newGame",
+          "game"
+        ],
+        "additionalProperties": false
+      },
+      "PlayerRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "isBot": {
+            "type": "boolean"
+          },
+          "isHost": {
+            "type": "boolean"
+          },
+          "stack": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in",
+              "out"
+            ]
+          },
+          "place": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "connected": {
+            "type": "boolean"
+          },
+          "sittingOut": {
+            "type": "boolean"
+          },
+          "rebuysUsed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "game": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "The game's record for this player as this viewer may see it (private-views)."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "seat",
+          "isBot",
+          "isHost",
+          "stack",
+          "status",
+          "place",
+          "connected",
+          "sittingOut",
+          "rebuysUsed",
+          "game"
+        ],
+        "additionalProperties": false
+      },
+      "RoundView": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "acting",
+              "auto",
+              "over"
+            ]
+          },
+          "actorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "remainingMs": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "description": "Left on a person's countdown (none of the settle), the next automatic step or the result pause."
+          },
+          "settleMs": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "event": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastActorId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "stage",
+          "actorId",
+          "remainingMs",
+          "settleMs",
+          "event",
+          "lastActorId"
+        ],
+        "additionalProperties": false
+      },
+      "View": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "roomId": {
+            "type": "string"
+          },
+          "gameNumber": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "you": {
+            "type": "string"
+          },
+          "display": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "lobby",
+              "acting",
+              "auto",
+              "over",
+              "offers",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "pauseReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "holds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "playerId": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "look",
+                    "learn"
+                  ]
+                }
+              },
+              "required": [
+                "playerId",
+                "kind"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "hostId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "players": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlayerRow"
+            }
+          },
+          "round": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoundView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "game": {
+            "description": "The game's public view for this viewer (game-rules publicView), or null."
+          },
+          "lastResult": {
+            "description": "The last round's result, or null."
+          },
+          "clock": {
+            "description": "The level schedule's description (tournament clockInfo), or null."
+          },
+          "rebuyOffers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "playerId": {
+                  "type": "string"
+                },
+                "remainingMs": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "playerId",
+                "remainingMs"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "winnerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "round-history list entries."
+          },
+          "legal": {
+            "$ref": "#/components/schemas/Legal"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "English text."
+          },
+          "promptKey": {
+            "type": "string"
+          },
+          "promptArgs": {
+            "type": "array",
+            "items": {
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          }
+        },
+        "required": [
+          "version",
+          "roomId",
+          "gameNumber",
+          "you",
+          "display",
+          "status",
+          "phase",
+          "pauseReasons",
+          "holds",
+          "hostId",
+          "players",
+          "round",
+          "game",
+          "lastResult",
+          "clock",
+          "rebuyOffers",
+          "winnerId",
+          "history",
+          "legal",
+          "prompt",
+          "promptKey",
+          "promptArgs"
+        ],
+        "additionalProperties": false
+      },
+      "Parts": {
+        "type": "object",
+        "properties": {
+          "rules": {
+            "type": "object",
+            "description": "The game: a game-rules implementation's GameRules object.",
+            "properties": {
+              "optionNames": {
+                "description": "The provider's method GameRules.optionNames."
+              },
+              "newRound": {
+                "description": "The provider's method GameRules.newRound."
+              },
+              "phase": {
+                "description": "The provider's method GameRules.phase."
+              },
+              "parseMove": {
+                "description": "The provider's method GameRules.parseMove."
+              },
+              "act": {
+                "description": "The provider's method GameRules.act."
+              },
+              "defaultMove": {
+                "description": "The provider's method GameRules.defaultMove."
+              },
+              "step": {
+                "description": "The provider's method GameRules.step."
+              },
+              "outcome": {
+                "description": "The provider's method GameRules.outcome."
+              },
+              "voidRound": {
+                "description": "The provider's method GameRules.voidRound."
+              },
+              "observation": {
+                "description": "The provider's method GameRules.observation."
+              },
+              "records": {
+                "description": "The provider's method GameRules.records."
+              },
+              "publicView": {
+                "description": "The provider's method GameRules.publicView."
+              },
+              "legal": {
+                "description": "The provider's method GameRules.legal."
+              },
+              "prompt": {
+                "description": "The provider's method GameRules.prompt."
+              }
+            },
+            "required": [
+              "optionNames",
+              "newRound",
+              "phase",
+              "parseMove",
+              "act",
+              "defaultMove",
+              "step",
+              "outcome",
+              "voidRound",
+              "observation",
+              "records",
+              "publicView",
+              "legal",
+              "prompt"
+            ],
+            "x-ourapps-interface": "ae/game-rules"
+          },
+          "seating": {
+            "type": "object",
+            "description": "seating's Seating object.",
+            "properties": {
+              "create": {
+                "description": "The provider's method Seating.create."
+              },
+              "validName": {
+                "description": "The provider's method Seating.validName."
+              },
+              "list": {
+                "description": "The provider's method Seating.list."
+              },
+              "find": {
+                "description": "The provider's method Seating.find."
+              },
+              "count": {
+                "description": "The provider's method Seating.count."
+              },
+              "people": {
+                "description": "The provider's method Seating.people."
+              },
+              "isFull": {
+                "description": "The provider's method Seating.isFull."
+              },
+              "join": {
+                "description": "The provider's method Seating.join."
+              },
+              "setHost": {
+                "description": "The provider's method Seating.setHost."
+              },
+              "hostOf": {
+                "description": "The provider's method Seating.hostOf."
+              },
+              "isEnough": {
+                "description": "The provider's method Seating.isEnough."
+              },
+              "minimumPlayers": {
+                "description": "The provider's method Seating.minimumPlayers."
+              },
+              "leave": {
+                "description": "The provider's method Seating.leave."
+              },
+              "leaveRunning": {
+                "description": "The provider's method Seating.leaveRunning."
+              },
+              "mayReturn": {
+                "description": "The provider's method Seating.mayReturn."
+              },
+              "returned": {
+                "description": "The provider's method Seating.returned."
+              },
+              "remove": {
+                "description": "The provider's method Seating.remove."
+              },
+              "canStart": {
+                "description": "The provider's method Seating.canStart."
+              },
+              "canAddComputer": {
+                "description": "The provider's method Seating.canAddComputer."
+              },
+              "assign": {
+                "description": "The provider's method Seating.assign."
+              },
+              "retain": {
+                "description": "The provider's method Seating.retain."
+              },
+              "compact": {
+                "description": "The provider's method Seating.compact."
+              }
+            },
+            "required": [
+              "create",
+              "validName",
+              "list",
+              "find",
+              "count",
+              "people",
+              "isFull",
+              "join",
+              "setHost",
+              "hostOf",
+              "isEnough",
+              "minimumPlayers",
+              "leave",
+              "leaveRunning",
+              "mayReturn",
+              "returned",
+              "remove",
+              "canStart",
+              "canAddComputer",
+              "assign",
+              "retain",
+              "compact"
+            ],
+            "x-ourapps-interface": "ae/seating"
+          },
+          "clock": {
+            "type": "object",
+            "description": "game-clock's functions.",
+            "properties": {
+              "create": {
+                "description": "The provider's method create."
+              },
+              "advance": {
+                "description": "The provider's method advance."
+              },
+              "reset": {
+                "description": "The provider's method reset."
+              },
+              "elapsed": {
+                "description": "The provider's method elapsed."
+              },
+              "wallAt": {
+                "description": "The provider's method wallAt."
+              }
+            },
+            "required": [
+              "create",
+              "advance",
+              "reset",
+              "elapsed",
+              "wallAt"
+            ],
+            "x-ourapps-interface": "ae/game-clock"
+          },
+          "views": {
+            "type": "object",
+            "description": "private-views' functions.",
+            "properties": {
+              "redact": {
+                "description": "The provider's method redact."
+              }
+            },
+            "required": [
+              "redact"
+            ],
+            "x-ourapps-interface": "ae/private-views"
+          },
+          "presence": {
+            "type": "object",
+            "description": "presence's PresenceApi object (createPresenceApi).",
+            "properties": {
+              "create": {
+                "description": "The provider's method PresenceApi.create."
+              },
+              "register": {
+                "description": "The provider's method PresenceApi.register."
+              },
+              "unregister": {
+                "description": "The provider's method PresenceApi.unregister."
+              },
+              "restart": {
+                "description": "The provider's method PresenceApi.restart."
+              },
+              "seen": {
+                "description": "The provider's method PresenceApi.seen."
+              },
+              "setLive": {
+                "description": "The provider's method PresenceApi.setLive."
+              },
+              "away": {
+                "description": "The provider's method PresenceApi.away."
+              },
+              "sitOut": {
+                "description": "The provider's method PresenceApi.sitOut."
+              },
+              "returned": {
+                "description": "The provider's method PresenceApi.returned."
+              },
+              "leftGame": {
+                "description": "The provider's method PresenceApi.leftGame."
+              },
+              "recordMiss": {
+                "description": "The provider's method PresenceApi.recordMiss."
+              },
+              "isConnected": {
+                "description": "The provider's method PresenceApi.isConnected."
+              },
+              "isLive": {
+                "description": "The provider's method PresenceApi.isLive."
+              },
+              "isSittingOut": {
+                "description": "The provider's method PresenceApi.isSittingOut."
+              },
+              "misses": {
+                "description": "The provider's method PresenceApi.misses."
+              },
+              "lastSeen": {
+                "description": "The provider's method PresenceApi.lastSeen."
+              },
+              "refresh": {
+                "description": "The provider's method PresenceApi.refresh."
+              },
+              "setManualPause": {
+                "description": "The provider's method PresenceApi.setManualPause."
+              },
+              "setHold": {
+                "description": "The provider's method PresenceApi.setHold."
+              },
+              "isPaused": {
+                "description": "The provider's method PresenceApi.isPaused."
+              },
+              "pauseReasons": {
+                "description": "The provider's method PresenceApi.pauseReasons."
+              },
+              "isManualPause": {
+                "description": "The provider's method PresenceApi.isManualPause."
+              },
+              "pausedSince": {
+                "description": "The provider's method PresenceApi.pausedSince."
+              },
+              "isHeld": {
+                "description": "The provider's method PresenceApi.isHeld."
+              },
+              "holds": {
+                "description": "The provider's method PresenceApi.holds."
+              },
+              "nextWake": {
+                "description": "The provider's method PresenceApi.nextWake."
+              }
+            },
+            "required": [
+              "create",
+              "register",
+              "unregister",
+              "restart",
+              "seen",
+              "setLive",
+              "away",
+              "sitOut",
+              "returned",
+              "leftGame",
+              "recordMiss",
+              "isConnected",
+              "isLive",
+              "isSittingOut",
+              "misses",
+              "lastSeen",
+              "refresh",
+              "setManualPause",
+              "setHold",
+              "isPaused",
+              "pauseReasons",
+              "isManualPause",
+              "pausedSince",
+              "isHeld",
+              "holds",
+              "nextWake"
+            ],
+            "x-ourapps-interface": "ae/presence"
+          },
+          "tournament": {
+            "type": "object",
+            "description": "tournament's Tournament object.",
+            "properties": {
+              "create": {
+                "description": "The provider's method Tournament.create."
+              },
+              "start": {
+                "description": "The provider's method Tournament.start."
+              },
+              "activeIds": {
+                "description": "The provider's method Tournament.activeIds."
+              },
+              "isActive": {
+                "description": "The provider's method Tournament.isActive."
+              },
+              "balance": {
+                "description": "The provider's method Tournament.balance."
+              },
+              "rebuysUsed": {
+                "description": "The provider's method Tournament.rebuysUsed."
+              },
+              "place": {
+                "description": "The provider's method Tournament.place."
+              },
+              "ledger": {
+                "description": "The provider's method Tournament.ledger."
+              },
+              "withLedger": {
+                "description": "The provider's method Tournament.withLedger."
+              },
+              "levelAt": {
+                "description": "The provider's method Tournament.levelAt."
+              },
+              "clockInfo": {
+                "description": "The provider's method Tournament.clockInfo."
+              },
+              "rebuyStack": {
+                "description": "The provider's method Tournament.rebuyStack."
+              },
+              "roundStarted": {
+                "description": "The provider's method Tournament.roundStarted."
+              },
+              "roundSettled": {
+                "description": "The provider's method Tournament.roundSettled."
+              },
+              "offers": {
+                "description": "The provider's method Tournament.offers."
+              },
+              "hasOffers": {
+                "description": "The provider's method Tournament.hasOffers."
+              },
+              "levelClockRuns": {
+                "description": "The provider's method Tournament.levelClockRuns."
+              },
+              "offerFor": {
+                "description": "The provider's method Tournament.offerFor."
+              },
+              "dueOffer": {
+                "description": "The provider's method Tournament.dueOffer."
+              },
+              "nextOfferDue": {
+                "description": "The provider's method Tournament.nextOfferDue."
+              },
+              "resolve": {
+                "description": "The provider's method Tournament.resolve."
+              },
+              "conclude": {
+                "description": "The provider's method Tournament.conclude."
+              },
+              "cancel": {
+                "description": "The provider's method Tournament.cancel."
+              },
+              "winner": {
+                "description": "The provider's method Tournament.winner."
+              }
+            },
+            "required": [
+              "create",
+              "start",
+              "activeIds",
+              "isActive",
+              "balance",
+              "rebuysUsed",
+              "place",
+              "ledger",
+              "withLedger",
+              "levelAt",
+              "clockInfo",
+              "rebuyStack",
+              "roundStarted",
+              "roundSettled",
+              "offers",
+              "hasOffers",
+              "levelClockRuns",
+              "offerFor",
+              "dueOffer",
+              "nextOfferDue",
+              "resolve",
+              "conclude",
+              "cancel",
+              "winner"
+            ],
+            "x-ourapps-interface": "ae/tournament"
+          },
+          "computers": {
+            "$ref": "#/components/schemas/ComputersPart"
+          },
+          "history": {
+            "type": "object",
+            "description": "round-history's HistoryApi object.",
+            "properties": {
+              "create": {
+                "description": "The provider's method HistoryApi.create."
+              },
+              "push": {
+                "description": "The provider's method HistoryApi.push."
+              },
+              "list": {
+                "description": "The provider's method HistoryApi.list."
+              }
+            },
+            "required": [
+              "create",
+              "push",
+              "list"
+            ],
+            "x-ourapps-interface": "ae/round-history"
+          },
+          "settings": {
+            "type": "object",
+            "description": "rules-settings' RulesReader.",
+            "properties": {
+              "value": {
+                "description": "The provider's method RulesReader.value."
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "x-ourapps-interface": "ae/rules-settings"
+          }
+        },
+        "required": [
+          "rules",
+          "seating",
+          "clock",
+          "views",
+          "presence",
+          "tournament",
+          "history",
+          "settings"
+        ],
+        "additionalProperties": false,
+        "description": "One implementation of each required interface. Each member lists the methods the engine calls, by the provider's method names. computers is optional."
+      },
+      "ComputersPart": {
+        "type": "object",
+        "description": "computer-players' Computers object.",
+        "properties": {
+          "create": {
+            "description": "The provider's method Computers.create."
+          },
+          "forget": {
+            "description": "The provider's method Computers.forget."
+          },
+          "add": {
+            "description": "The provider's method Computers.add."
+          },
+          "idFor": {
+            "description": "The provider's method Computers.idFor."
+          },
+          "fill": {
+            "description": "The provider's method Computers.fill."
+          },
+          "actsFor": {
+            "description": "The provider's method Computers.actsFor."
+          },
+          "moveDeadline": {
+            "description": "The provider's method Computers.moveDeadline."
+          },
+          "isDue": {
+            "description": "The provider's method Computers.isDue."
+          },
+          "rebuyDelayMs": {
+            "description": "The provider's method Computers.rebuyDelayMs."
+          },
+          "choose": {
+            "description": "The provider's method Computers.choose."
+          },
+          "observe": {
+            "description": "The provider's method Computers.observe."
+          }
+        },
+        "required": [
+          "create",
+          "forget",
+          "add",
+          "idFor",
+          "fill",
+          "actsFor",
+          "moveDeadline",
+          "isDue",
+          "rebuyDelayMs",
+          "choose",
+          "observe"
+        ],
+        "x-ourapps-interface": "ae/computer-players"
+      },
+      "GameAdapter": {
+        "type": "object",
+        "description": "The object createGameAdapter returns; its members are the `GameAdapter.<name>` methods."
+      }
+    },
+    "errors": {
+      "BadSettings": {
+        "code": 1001,
+        "message": "turn-engine: decisionSeconds (1 or more, or null), settleMs (0 or more), staleMinutes, standingsSeconds and lobbyDropSeconds (1 or more) must be whole numbers",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "UnsupportedState": {
+        "code": 1002,
+        "message": "Unsupported game state.",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "DefaultMoveRefused": {
+        "code": 1003,
+        "message": "turn-engine: the game's default move was refused: <code>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "NoMoveAccepted": {
+        "code": 1004,
+        "message": "turn-engine: neither the strategy's move nor the game's default move was accepted for <id>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "NoOutcome": {
+        "code": 1005,
+        "message": "turn-engine: the game reported the round over without an outcome",
+        "data": {
+          "thrown": "Error"
+        }
+      }
     }
   }
 }

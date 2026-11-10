@@ -1,0 +1,980 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/round-history",
+    "version": "1.0.0",
+    "description": "A bounded record of rounds and their results: the oldest rounds fall off the end. No game knowledge. Two forms of the same history: typed (appendRound with a RoundEntry) and the engine's (push a plain object, list plain objects) for a game that records its own fields beside the result; those fields are stored in RoundEntry.extra and flattened again by list. Every function returns a new history. Server: TypeScript `implementation/server/history.ts`; methods named `HistoryApi.<name>` are members of the object createHistoryApi returns. Clients: Swift `RoundHistory` (`implementation/apple/Sources/RoundHistory.swift`) and Kotlin `ae.history.RoundHistory` hold HistoryEntry values decoded from a view's `history` list (no, level, winners, voided; game fields ignored); methods named `RoundHistory.<name>` are theirs."
+  },
+  "methods": [
+    {
+      "name": "validateSettings",
+      "description": "Fill the default (maxRounds 50) and check the settings.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialHistorySettings"
+          },
+          "description": "Defaults to {} (maxRounds 50)."
+        }
+      ],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/HistorySettings"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMaxRounds"
+        }
+      ]
+    },
+    {
+      "name": "create",
+      "description": "An empty history with the default or the given settings.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialHistorySettings"
+          },
+          "description": "Defaults to {} (maxRounds 50)."
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMaxRounds"
+        }
+      ]
+    },
+    {
+      "name": "push",
+      "description": "Add a round given as a plain object {no, level, voided, winners?, ...game fields}. winners defaults to none and voided to false; the other fields are kept and come back from list. Round numbers must rise; the newest maxRounds are kept.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        {
+          "name": "entry",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PlainRound"
+          }
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNo"
+        },
+        {
+          "$ref": "#/components/errors/BadLevel"
+        },
+        {
+          "$ref": "#/components/errors/BadVoided"
+        },
+        {
+          "$ref": "#/components/errors/BadWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerId"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerAmount"
+        },
+        {
+          "$ref": "#/components/errors/VoidedWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadExtra"
+        },
+        {
+          "$ref": "#/components/errors/NotRising"
+        }
+      ]
+    },
+    {
+      "name": "list",
+      "description": "Every round held, oldest first, as plain objects {no, level, voided, winners, ...game fields}.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
+      ],
+      "result": {
+        "name": "rounds",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PlainRound"
+          }
+        }
+      }
+    },
+    {
+      "name": "createHistoryApi",
+      "description": "create, push and list with maxRounds bound, for a caller that wants one object.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialHistorySettings"
+          },
+          "description": "Defaults to {} (maxRounds 50)."
+        }
+      ],
+      "result": {
+        "name": "api",
+        "schema": {
+          "$ref": "#/components/schemas/HistoryApi"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadMaxRounds"
+        }
+      ]
+    },
+    {
+      "name": "HistoryApi.settings",
+      "description": "The checked settings.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/HistorySettings"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "HistoryApi.create",
+      "description": "An empty history with the bound settings.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      }
+    },
+    {
+      "name": "HistoryApi.push",
+      "description": "As push.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        {
+          "name": "entry",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PlainRound"
+          }
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNo"
+        },
+        {
+          "$ref": "#/components/errors/BadLevel"
+        },
+        {
+          "$ref": "#/components/errors/BadVoided"
+        },
+        {
+          "$ref": "#/components/errors/BadWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerId"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerAmount"
+        },
+        {
+          "$ref": "#/components/errors/VoidedWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadExtra"
+        },
+        {
+          "$ref": "#/components/errors/NotRising"
+        }
+      ]
+    },
+    {
+      "name": "HistoryApi.list",
+      "description": "As list.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
+      ],
+      "result": {
+        "name": "rounds",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/PlainRound"
+          }
+        }
+      }
+    },
+    {
+      "name": "checkEntry",
+      "description": "Check a typed entry and return a clean copy (extra kept only when it has fields).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "entry",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/RoundEntry"
+          }
+        }
+      ],
+      "result": {
+        "name": "entry",
+        "schema": {
+          "$ref": "#/components/schemas/RoundEntry"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNo"
+        },
+        {
+          "$ref": "#/components/errors/BadLevel"
+        },
+        {
+          "$ref": "#/components/errors/BadVoided"
+        },
+        {
+          "$ref": "#/components/errors/BadWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerId"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerAmount"
+        },
+        {
+          "$ref": "#/components/errors/VoidedWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadExtra"
+        }
+      ]
+    },
+    {
+      "name": "appendRound",
+      "description": "Add a typed round, keeping only the newest maxRounds. Round numbers must rise.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        {
+          "name": "entry",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/RoundEntry"
+          }
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNo"
+        },
+        {
+          "$ref": "#/components/errors/BadLevel"
+        },
+        {
+          "$ref": "#/components/errors/BadVoided"
+        },
+        {
+          "$ref": "#/components/errors/BadWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerId"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerAmount"
+        },
+        {
+          "$ref": "#/components/errors/VoidedWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadExtra"
+        },
+        {
+          "$ref": "#/components/errors/NotRising"
+        }
+      ]
+    },
+    {
+      "name": "appendVoided",
+      "description": "Add a voided round with no winners.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        {
+          "name": "no",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        {
+          "name": "level",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadNo"
+        },
+        {
+          "$ref": "#/components/errors/BadLevel"
+        },
+        {
+          "$ref": "#/components/errors/NotRising"
+        }
+      ]
+    },
+    {
+      "name": "clearHistory",
+      "description": "Remove every round, keeping maxRounds.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      }
+    },
+    {
+      "name": "recentRounds",
+      "description": "The newest `count` rounds, oldest first.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        {
+          "name": "count",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      ],
+      "result": {
+        "name": "rounds",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/RoundEntry"
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadCount"
+        }
+      ]
+    },
+    {
+      "name": "findRound",
+      "description": "A round by number, or null.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        },
+        {
+          "name": "no",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "result": {
+        "name": "round",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/RoundEntry"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "totalsByPlayer",
+      "description": "Chips won and rounds won per player over the rounds held; voided rounds count for nothing.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
+      ],
+      "result": {
+        "name": "totals",
+        "schema": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "won": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "rounds": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "won",
+              "rounds"
+            ],
+            "additionalProperties": false
+          },
+          "description": "Player id to totals."
+        }
+      }
+    },
+    {
+      "name": "exportRounds",
+      "description": "Newline-delimited JSON: the settings first, then one line per round, oldest first; each line carries the SHA-256 of its record (records: ae/round-history-records document).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "history",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
+      ],
+      "result": {
+        "name": "ndjson",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "importRounds",
+      "description": "Read an export. A file holding more rounds than maxRounds (given here or in the file) keeps the newest.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "text",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "settings",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialHistorySettings"
+          },
+          "description": "Defaults to {} (maxRounds 50)."
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "$ref": "#/components/schemas/History"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ImportChecksum"
+        },
+        {
+          "$ref": "#/components/errors/ImportUnexpected"
+        },
+        {
+          "$ref": "#/components/errors/ImportNoHistory"
+        },
+        {
+          "$ref": "#/components/errors/BadMaxRounds"
+        },
+        {
+          "$ref": "#/components/errors/BadNo"
+        },
+        {
+          "$ref": "#/components/errors/BadLevel"
+        },
+        {
+          "$ref": "#/components/errors/BadVoided"
+        },
+        {
+          "$ref": "#/components/errors/BadWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerId"
+        },
+        {
+          "$ref": "#/components/errors/BadWinnerAmount"
+        },
+        {
+          "$ref": "#/components/errors/VoidedWinners"
+        },
+        {
+          "$ref": "#/components/errors/BadExtra"
+        },
+        {
+          "$ref": "#/components/errors/NotRising"
+        }
+      ]
+    },
+    {
+      "name": "RoundHistory.appending",
+      "description": "Client (Swift, Kotlin): a new RoundHistory with the entry added and the oldest dropped beyond maxRounds. Swift `RoundHistory(maxRounds:rounds:)` and Kotlin `RoundHistory(maxRounds, rounds)` default maxRounds to 50 and refuse less than 1.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "entry",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/HistoryEntry"
+          }
+        }
+      ],
+      "result": {
+        "name": "history",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "maxRounds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "rounds": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/HistoryEntry"
+              }
+            }
+          },
+          "required": [
+            "maxRounds",
+            "rounds"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "name": "RoundHistory.chipsWon",
+      "description": "Client (Swift, Kotlin): chips won per player over the rounds held; voided rounds count for nothing.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "totals",
+        "schema": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Winner": {
+        "type": "object",
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "playerId",
+          "amount"
+        ],
+        "additionalProperties": false
+      },
+      "RoundEntry": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "winners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Winner"
+            }
+          },
+          "voided": {
+            "type": "boolean",
+            "description": "A voided round has no winners."
+          },
+          "extra": {
+            "type": "object",
+            "description": "Any other facts a game keeps about a round, as plain JSON."
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "winners",
+          "voided"
+        ],
+        "additionalProperties": false,
+        "description": "`level` is the stage the round was played at (a blind level in a poker game)."
+      },
+      "PlainRound": {
+        "type": "object",
+        "description": "A round as a plain object: the core fields plus any game fields (plain JSON).",
+        "properties": {
+          "no": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "voided": {
+            "type": "boolean",
+            "default": false
+          },
+          "winners": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Winner"
+            },
+            "default": []
+          }
+        },
+        "required": [
+          "no",
+          "level"
+        ]
+      },
+      "History": {
+        "type": "object",
+        "properties": {
+          "maxRounds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoundEntry"
+            },
+            "description": "Oldest first."
+          }
+        },
+        "required": [
+          "maxRounds",
+          "rounds"
+        ],
+        "additionalProperties": false
+      },
+      "HistorySettings": {
+        "type": "object",
+        "properties": {
+          "maxRounds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "maxRounds"
+        ],
+        "additionalProperties": false
+      },
+      "PartialHistorySettings": {
+        "type": "object",
+        "properties": {
+          "maxRounds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          }
+        },
+        "additionalProperties": false
+      },
+      "HistoryApi": {
+        "type": "object",
+        "description": "The object createHistoryApi returns; its members are the `HistoryApi.<name>` methods."
+      },
+      "HistoryEntry": {
+        "type": "object",
+        "properties": {
+          "no": {
+            "type": "integer"
+          },
+          "level": {
+            "type": "integer"
+          },
+          "winners": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "playerId": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "playerId",
+                "amount"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "voided": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "no",
+          "level",
+          "winners",
+          "voided"
+        ],
+        "additionalProperties": false,
+        "description": "Client entry (Swift HistoryEntry, Kotlin HistoryEntry)."
+      }
+    },
+    "errors": {
+      "BadMaxRounds": {
+        "code": 1001,
+        "message": "maxRounds must be a whole number of at least 1",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadNo": {
+        "code": 1002,
+        "message": "no must be a whole number from 1",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadLevel": {
+        "code": 1003,
+        "message": "level must be a whole number from 1",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "BadVoided": {
+        "code": 1004,
+        "message": "voided must be true or false",
+        "data": {
+          "thrown": "TypeError"
+        }
+      },
+      "BadWinners": {
+        "code": 1005,
+        "message": "winners must be a list",
+        "data": {
+          "thrown": "TypeError"
+        }
+      },
+      "BadWinnerId": {
+        "code": 1006,
+        "message": "a winner needs a playerId",
+        "data": {
+          "thrown": "TypeError"
+        }
+      },
+      "BadWinnerAmount": {
+        "code": 1007,
+        "message": "a winner's amount must be a whole number of 0 or more",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "VoidedWinners": {
+        "code": 1008,
+        "message": "a voided round has no winners",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadExtra": {
+        "code": 1009,
+        "message": "extra must be a plain object of JSON values",
+        "data": {
+          "thrown": "TypeError"
+        }
+      },
+      "NotRising": {
+        "code": 1010,
+        "message": "round <no> must come after round <last>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadCount": {
+        "code": 1011,
+        "message": "count must be a whole number of 0 or more",
+        "data": {
+          "thrown": "RangeError"
+        }
+      },
+      "ImportChecksum": {
+        "code": 1012,
+        "message": "line <n>: checksum does not match",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportUnexpected": {
+        "code": 1013,
+        "message": "line <n>: unexpected record <kind>",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportNoHistory": {
+        "code": 1014,
+        "message": "no history record",
+        "data": {
+          "thrown": "Error"
+        }
+      }
+    }
+  }
+}

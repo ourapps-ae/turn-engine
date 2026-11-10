@@ -1,0 +1,642 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/private-views",
+    "version": "1.0.0",
+    "description": "Send each viewer only what they may see. Server (server/private-views.ts): viewFor conceals a copy of the state by a policy; redact does the same for facts grouped by owner. Clients (web/views.ts; Swift enum PrivateViews and protocol ViewEnvelope; Kotlin package ae.views): which arriving view to keep. Methods are tagged with the languages that provide them. S is the application's state and V its view; both are JSON values.",
+    "license": {
+      "name": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "methods": [
+    {
+      "name": "viewFor",
+      "description": "A copy of the (projected) state with everything the viewer may not see concealed by the rules, then youField, displayField and decorate applied. The state is not changed.",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {}
+        },
+        {
+          "name": "viewer",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Viewer"
+          }
+        },
+        {
+          "name": "policy",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Policy"
+          }
+        }
+      ],
+      "result": {
+        "name": "view",
+        "schema": {
+          "description": "V."
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
+    },
+    {
+      "name": "viewerOf",
+      "description": "The viewer for a request; a display never has an id.",
+      "params": [
+        {
+          "name": "role",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "viewer",
+        "schema": {
+          "$ref": "#/components/schemas/Viewer"
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
+    },
+    {
+      "name": "redact",
+      "description": "One object per record in order: the open facts, then each hidden key as its value when the viewer owns the record or it is revealed, else null; a revealed index list keeps the listed elements and nulls the rest. A null viewer is a display and sees only what is revealed. A hidden key replaces an open one of the same name. Values are copies.",
+      "params": [
+        {
+          "name": "viewerId",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        {
+          "name": "records",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HiddenRecord"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "views",
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
+    },
+    {
+      "name": "isNewer",
+      "description": "True when there is no current view, it is from another room, or incoming has a higher version. Swift isNewer(_:than:).",
+      "params": [
+        {
+          "name": "incoming",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ViewEnvelope"
+          }
+        },
+        {
+          "name": "current",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ViewEnvelope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "newer",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        },
+        {
+          "name": "swift"
+        },
+        {
+          "name": "kotlin"
+        }
+      ]
+    },
+    {
+      "name": "newer",
+      "description": "incoming when isNewer, else current.",
+      "params": [
+        {
+          "name": "incoming",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ViewEnvelope"
+          }
+        },
+        {
+          "name": "current",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ViewEnvelope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "view",
+        "schema": {
+          "$ref": "#/components/schemas/ViewEnvelope"
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
+    },
+    {
+      "name": "matchesMode",
+      "description": "A player's connection takes only player views and a display's only display views.",
+      "params": [
+        {
+          "name": "view",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ViewEnvelope"
+          }
+        },
+        {
+          "name": "mode",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClientMode"
+          }
+        }
+      ],
+      "result": {
+        "name": "matches",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
+    },
+    {
+      "name": "PrivateViews.matchesMode",
+      "description": "Swift matchesMode(_:display:), Kotlin matchesMode(view, display): the view's display flag equals display.",
+      "params": [
+        {
+          "name": "view",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ViewEnvelope"
+          }
+        },
+        {
+          "name": "display",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "matches",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "tags": [
+        {
+          "name": "swift"
+        },
+        {
+          "name": "kotlin"
+        }
+      ]
+    },
+    {
+      "name": "accept",
+      "description": "The view to show after one arrives: newer when it matches the mode, else current.",
+      "params": [
+        {
+          "name": "incoming",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ViewEnvelope"
+          }
+        },
+        {
+          "name": "current",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ViewEnvelope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mode",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ClientMode"
+          }
+        }
+      ],
+      "result": {
+        "name": "view",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/ViewEnvelope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
+    },
+    {
+      "name": "isOwn",
+      "description": "The view's you is not empty and equals id.",
+      "params": [
+        {
+          "name": "view",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/ViewEnvelope"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "own",
+        "schema": {
+          "type": "boolean"
+        }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        },
+        {
+          "name": "swift"
+        },
+        {
+          "name": "kotlin"
+        }
+      ]
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Role": {
+        "type": "string",
+        "enum": [
+          "participant",
+          "spectator",
+          "display"
+        ]
+      },
+      "Viewer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "null for a display."
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "id",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "Reveal": {
+        "description": "One way a hidden field becomes visible.",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "owner"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "additionalProperties": false,
+            "description": "The viewer is a participant and owns the item (item[owner] equals the viewer's id)."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "roles"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Role"
+                }
+              }
+            },
+            "required": [
+              "kind",
+              "roles"
+            ],
+            "additionalProperties": false,
+            "description": "The viewer's role is listed; an empty list reveals to nobody."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "listedIndexes"
+              },
+              "field": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "field"
+            ],
+            "additionalProperties": false,
+            "description": "For an element of an array field: its index is listed in item[field]."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "flag"
+              },
+              "field": {
+                "type": "string"
+              },
+              "equals": {}
+            },
+            "required": [
+              "kind",
+              "field"
+            ],
+            "additionalProperties": false,
+            "description": "item[field] is truthy, or equals equals when given."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "const": "when"
+              },
+              "condition": {
+                "type": "string",
+                "description": "Name of a policy condition."
+              }
+            },
+            "required": [
+              "kind",
+              "condition"
+            ],
+            "additionalProperties": false,
+            "description": "The named condition returns true."
+          }
+        ]
+      },
+      "Rule": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "description": "'field' or 'a.b' for a field of the state; 'items[].field' for that field of every element of the array items.",
+            "pattern": "^[^\\[\\]]+(\\[\\]\\.[^\\[\\]]+)?$"
+          },
+          "owner": {
+            "type": "string",
+            "description": "The item field naming its owner; defaults to id."
+          },
+          "elements": {
+            "type": "boolean",
+            "description": "The field is an array: decide and conceal each element on its own."
+          },
+          "conceal": {
+            "type": "string",
+            "enum": [
+              "null",
+              "remove",
+              "mask"
+            ],
+            "description": "How a concealed value is shown; null (the string) when absent sets null."
+          },
+          "mask": {
+            "description": "The value shown with conceal mask."
+          },
+          "reveal": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reveal"
+            },
+            "description": "Visible when any holds; none means never visible."
+          }
+        },
+        "required": [
+          "at"
+        ],
+        "additionalProperties": false
+      },
+      "Policy": {
+        "type": "object",
+        "required": [
+          "rules"
+        ],
+        "properties": {
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rule"
+            }
+          },
+          "conditions": {
+            "type": "object",
+            "additionalProperties": {
+              "description": "Function (context: { state, viewer, item, index: number | null }) => boolean."
+            },
+            "description": "Named conditions for reveal kind when."
+          },
+          "project": {
+            "description": "Function (state: S) => V; builds the full view (with hidden data) before the rules conceal it."
+          },
+          "youField": {
+            "type": "string",
+            "description": "View field set to the viewer's id, empty for none."
+          },
+          "displayField": {
+            "type": "string",
+            "description": "View field set to whether the viewer is a display."
+          },
+          "decorate": {
+            "description": "Function (view: V, state: S, viewer: Viewer) => V; adds what only this viewer gets after concealing."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ViewEnvelope": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "roomId": {
+            "type": "string"
+          },
+          "you": {
+            "type": "string",
+            "description": "The viewer's id; empty for a display."
+          },
+          "display": {
+            "type": "boolean",
+            "description": "True for a display's view; absent counts as false (always present in Kotlin, optional in Swift)."
+          }
+        },
+        "required": [
+          "version",
+          "roomId",
+          "you"
+        ],
+        "additionalProperties": true,
+        "description": "What every view carries; the rest is the game's."
+      },
+      "ClientMode": {
+        "type": "string",
+        "enum": [
+          "player",
+          "display"
+        ]
+      },
+      "HiddenRecord": {
+        "type": "object",
+        "properties": {
+          "ownerId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "null: belongs to nobody."
+          },
+          "open": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Facts everyone sees."
+          },
+          "hidden": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Facts only the owner sees until revealed."
+          },
+          "revealed": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "const": true
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              ]
+            },
+            "description": "Hidden keys now public: true for the whole value, or the indexes of an array value shown."
+          }
+        },
+        "required": [
+          "ownerId",
+          "open",
+          "hidden",
+          "revealed"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

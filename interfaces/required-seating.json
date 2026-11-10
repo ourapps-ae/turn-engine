@@ -1,0 +1,1328 @@
+{
+  "openrpc": "1.3.2",
+  "info": {
+    "title": "ae/seating",
+    "version": "1.0.0",
+    "description": "Seats for a table of people and computer players. Build the component once with createSeating(settings, identity); methods named `Seating.<name>` are members of the object it returns. Every member takes a state and returns a new one, never changing its input. Server: TypeScript `implementation/server/seating.ts` and `implementation/server/migrate.ts` (exportAll, importAll). Client lobby rows: TypeScript `implementation/web/lobby.ts`, Swift `implementation/apple/Sources/SeatRows.swift`, Kotlin `ae.seating` `SeatRows.kt` (seatRows, canTakeSeat; Swift and Kotlin take the same values as structs and enums)."
+  },
+  "methods": [
+    {
+      "name": "createSeating",
+      "description": "Check the settings and build the seating operations around the identity's name rule.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "settings",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/PartialSeatingSettings"
+          },
+          "description": "Missing settings take the defaults."
+        },
+        {
+          "name": "identity",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Identity"
+          }
+        }
+      ],
+      "result": {
+        "name": "seating",
+        "schema": {
+          "$ref": "#/components/schemas/Seating"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadPlayerCounts"
+        },
+        {
+          "$ref": "#/components/errors/BadSeating"
+        },
+        {
+          "$ref": "#/components/errors/BadFlags"
+        }
+      ]
+    },
+    {
+      "name": "checkSettings",
+      "description": "Fill defaults (minimumPlayers 2, maximumPlayers 9, seating random, returnToStack true, hostRemovesPeople false) and check the settings.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "input",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/PartialSeatingSettings"
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingSettings"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/BadPlayerCounts"
+        },
+        {
+          "$ref": "#/components/errors/BadSeating"
+        },
+        {
+          "$ref": "#/components/errors/BadFlags"
+        }
+      ]
+    },
+    {
+      "name": "shuffled",
+      "description": "A shuffled copy (Fisher-Yates) using the caller's random function.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "items",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {}
+          }
+        },
+        {
+          "name": "rng",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Rng"
+          }
+        }
+      ],
+      "result": {
+        "name": "items",
+        "schema": {
+          "type": "array",
+          "items": {}
+        }
+      }
+    },
+    {
+      "name": "Seating.settings",
+      "description": "The checked settings.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "settings",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingSettings"
+        }
+      },
+      "x-ourapps-property": true
+    },
+    {
+      "name": "Seating.create",
+      "description": "An empty table.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.validName",
+      "description": "The identity rule: the validName of the identity given to createSeating.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "name",
+          "required": true,
+          "schema": {}
+        }
+      ],
+      "result": {
+        "name": "valid",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Seating.list",
+      "description": "Seats in seat order.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "seats",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Seat"
+          }
+        }
+      }
+    },
+    {
+      "name": "Seating.find",
+      "description": "The seat of an id; undefined when there is none.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "seat",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/Seat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "undefined (absent) when the id has no seat."
+        }
+      }
+    },
+    {
+      "name": "Seating.findByName",
+      "description": "The seat of a name; undefined when there is none.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "name",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "seat",
+        "schema": {
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/Seat"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "undefined (absent) when the name has no seat."
+        }
+      }
+    },
+    {
+      "name": "Seating.count",
+      "description": "How many seats are taken.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "count",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "Seating.people",
+      "description": "Seats held by people (computer false).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "seats",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Seat"
+          }
+        }
+      }
+    },
+    {
+      "name": "Seating.computers",
+      "description": "Seats held by computer players (computer true).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "seats",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Seat"
+          }
+        }
+      }
+    },
+    {
+      "name": "Seating.isFull",
+      "description": "True when maximumPlayers seats are taken.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "full",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Seating.isEnough",
+      "description": "True when at least minimumPlayers seats are taken.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "enough",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Seating.join",
+      "description": "Sit down on the lowest free seat. badName for an invalid or taken name or a taken id; roomFull when full.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "name",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "options",
+          "required": false,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "computer": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Defaults to {}."
+        }
+      ],
+      "result": {
+        "name": "outcome",
+        "schema": {
+          "$ref": "#/components/schemas/Outcome"
+        }
+      }
+    },
+    {
+      "name": "Seating.setHost",
+      "description": "Name the host (null for none).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.hostOf",
+      "description": "The host's id, or null.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "hostId",
+        "schema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Seating.minimumPlayers",
+      "description": "The minimumPlayers setting.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "count",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    {
+      "name": "Seating.maximumPlayers",
+      "description": "The maximumPlayers setting; also the size of the ring nextOccupied and distance use.",
+      "paramStructure": "by-position",
+      "params": [],
+      "result": {
+        "name": "count",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    {
+      "name": "Seating.isHost",
+      "description": "True when the id is the host.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "host",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Seating.leave",
+      "description": "Give the seat up (before the game starts, or after it ends); clears the host when it was the host.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.leaveRunning",
+      "description": "Leave a game under way. The seat and stack stay; without returnToStack the id is recorded in left and the way back is shut.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.mayReturn",
+      "description": "True when the id has a seat and returnToStack is on or the id has not left.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "may",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "name": "Seating.returned",
+      "description": "Take the id off the left list.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.remove",
+      "description": "Take a player off the table. Anyone seated who is not a computer may remove a computer player; the host, with hostRemovesPeople, may remove a person too (never themselves). notAllowed when the remover is absent or a computer; badTarget when the target is absent or may not be removed.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "byId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The person asking."
+        },
+        {
+          "name": "targetId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "outcome",
+        "schema": {
+          "$ref": "#/components/schemas/Outcome"
+        }
+      }
+    },
+    {
+      "name": "Seating.canStart",
+      "description": "May this person start the game now? notAllowed, notEnoughPlayers.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "byId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The person asking."
+        }
+      ],
+      "result": {
+        "name": "outcome",
+        "schema": {
+          "$ref": "#/components/schemas/Outcome"
+        }
+      }
+    },
+    {
+      "name": "Seating.canAddComputer",
+      "description": "May this person add a computer player now? notAllowed, roomFull.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "byId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "The person asking."
+        }
+      ],
+      "result": {
+        "name": "outcome",
+        "schema": {
+          "$ref": "#/components/schemas/Outcome"
+        }
+      }
+    },
+    {
+      "name": "Seating.assign",
+      "description": "Fix the seat numbers 0..n-1 when the game starts: shuffled for seating random, in the order people sat down for order.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "rng",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Rng"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.compact",
+      "description": "Close the gaps: seat numbers become 0..n-1 in seat order.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.retain",
+      "description": "A new lobby keeping only the seats `keep` accepts, renumbered 0..n-1 in their old order; no host, nobody left.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "keep",
+          "required": true,
+          "schema": {
+            "description": "A function (seat: Seat) => boolean."
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      }
+    },
+    {
+      "name": "Seating.nextOccupied",
+      "description": "The next occupied seat clockwise from a seat number, among the given ids (default all); fromSeat when there is none.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        },
+        {
+          "name": "fromSeat",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "among",
+          "required": false,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "seat",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "name": "Seating.distance",
+      "description": "Clockwise steps from one seat to another, 1 to maximumPlayers; the same seat is a full circle.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "from",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "to",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      ],
+      "result": {
+        "name": "steps",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    {
+      "name": "exportAll",
+      "description": "Newline-delimited JSON: one line per seat, one for the host, one per person who left a running game; each line carries a sha256 of its content (records: ae/seating-state document).",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "state",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/SeatingState"
+          }
+        }
+      ],
+      "result": {
+        "name": "ndjson",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    {
+      "name": "importAll",
+      "description": "Read what exportAll wrote, checking each line's sha256.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "text",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "state",
+        "schema": {
+          "$ref": "#/components/schemas/SeatingState"
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/ImportChecksum"
+        },
+        {
+          "$ref": "#/components/errors/ImportBadSeat"
+        },
+        {
+          "$ref": "#/components/errors/ImportDuplicate"
+        },
+        {
+          "$ref": "#/components/errors/ImportUnknown"
+        },
+        {
+          "$ref": "#/components/errors/ImportHost"
+        }
+      ]
+    },
+    {
+      "name": "seatRows",
+      "description": "Client: rows of the seat list shown before a game starts, in seat order. Text stays with the application.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "players",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeatPlayer"
+            }
+          }
+        },
+        {
+          "name": "you",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "removable",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "none",
+              "computers",
+              "everyone"
+            ],
+            "description": "Swift Removable .none/.computers/.everyone; Kotlin Removable.NONE/COMPUTERS/EVERYONE."
+          }
+        }
+      ],
+      "result": {
+        "name": "rows",
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/SeatRow"
+          }
+        }
+      }
+    },
+    {
+      "name": "canTakeSeat",
+      "description": "Client: whether the room list can offer a seat: the name already holds one, or the game has not started and the room is not full.",
+      "paramStructure": "by-position",
+      "params": [
+        {
+          "name": "names",
+          "required": true,
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "name": "playerCount",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        {
+          "name": "maximum",
+          "required": true,
+          "schema": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        {
+          "name": "yourName",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "inGame",
+          "required": true,
+          "schema": {
+            "type": "boolean"
+          }
+        }
+      ],
+      "result": {
+        "name": "can",
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Rng": {
+        "description": "A function () => number. Returns a number in [0, 1)."
+      },
+      "Seat": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "computer": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "seat",
+          "computer"
+        ],
+        "additionalProperties": false
+      },
+      "SeatingState": {
+        "type": "object",
+        "properties": {
+          "seats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Seat"
+            }
+          },
+          "hostId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "left": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Ids that left a running game without the right to return."
+          }
+        },
+        "required": [
+          "seats",
+          "hostId",
+          "left"
+        ],
+        "additionalProperties": false
+      },
+      "SeatingCode": {
+        "type": "string",
+        "enum": [
+          "badName",
+          "roomFull",
+          "notAllowed",
+          "badTarget",
+          "notEnoughPlayers"
+        ]
+      },
+      "Outcome": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": true
+              },
+              "state": {
+                "$ref": "#/components/schemas/SeatingState"
+              }
+            },
+            "required": [
+              "ok",
+              "state"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "const": false
+              },
+              "code": {
+                "$ref": "#/components/schemas/SeatingCode"
+              }
+            },
+            "required": [
+              "ok",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "SeatingSettings": {
+        "type": "object",
+        "properties": {
+          "minimumPlayers": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 2
+          },
+          "maximumPlayers": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 9,
+            "description": "At least minimumPlayers; also the size of the seat ring."
+          },
+          "seating": {
+            "type": "string",
+            "enum": [
+              "random",
+              "order"
+            ],
+            "default": "random"
+          },
+          "returnToStack": {
+            "type": "boolean",
+            "default": true,
+            "description": "A player who leaves a running game may come back to the seat and stack."
+          },
+          "hostRemovesPeople": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "minimumPlayers",
+          "maximumPlayers",
+          "seating",
+          "returnToStack",
+          "hostRemovesPeople"
+        ],
+        "additionalProperties": false
+      },
+      "PartialSeatingSettings": {
+        "type": "object",
+        "properties": {
+          "minimumPlayers": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 2
+          },
+          "maximumPlayers": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 9,
+            "description": "At least minimumPlayers; also the size of the seat ring."
+          },
+          "seating": {
+            "type": "string",
+            "enum": [
+              "random",
+              "order"
+            ],
+            "default": "random"
+          },
+          "returnToStack": {
+            "type": "boolean",
+            "default": true,
+            "description": "A player who leaves a running game may come back to the seat and stack."
+          },
+          "hostRemovesPeople": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "description": "Any subset of SeatingSettings; missing settings take the defaults."
+      },
+      "Identity": {
+        "type": "object",
+        "description": "The name rule: guest-identity's createIdentityApi(settings), with nameMinLength and nameMaxLength bound.",
+        "properties": {
+          "validName": {
+            "description": "A function validName(name: unknown): boolean."
+          }
+        },
+        "required": [
+          "validName"
+        ],
+        "x-ourapps-interface": "ae/guest-identity"
+      },
+      "Seating": {
+        "type": "object",
+        "description": "The object createSeating returns; its members are the `Seating.<name>` methods."
+      },
+      "SeatPlayer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "seat": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "isBot": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "seat",
+          "isBot"
+        ],
+        "additionalProperties": false
+      },
+      "SeatRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "seatNumber": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string"
+          },
+          "isYou": {
+            "type": "boolean"
+          },
+          "isComputer": {
+            "type": "boolean"
+          },
+          "canRemove": {
+            "type": "boolean"
+          },
+          "firstComputer": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "seatNumber",
+          "name",
+          "isYou",
+          "isComputer",
+          "canRemove",
+          "firstComputer"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "errors": {
+      "BadPlayerCounts": {
+        "code": 1001,
+        "message": "seating: minimumPlayers and maximumPlayers must be whole numbers with minimum <= maximum",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadSeating": {
+        "code": 1002,
+        "message": "seating: seating must be random or order",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "BadFlags": {
+        "code": 1003,
+        "message": "seating: returnToStack and hostRemovesPeople must be booleans",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportChecksum": {
+        "code": 1004,
+        "message": "seating import: checksum mismatch",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportBadSeat": {
+        "code": 1005,
+        "message": "seating import: bad seat record",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportDuplicate": {
+        "code": 1006,
+        "message": "seating import: duplicate seat or id",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportUnknown": {
+        "code": 1007,
+        "message": "seating import: unknown record",
+        "data": {
+          "thrown": "Error"
+        }
+      },
+      "ImportHost": {
+        "code": 1008,
+        "message": "seating import: host has no seat",
+        "data": {
+          "thrown": "Error"
+        }
+      }
+    }
+  }
+}

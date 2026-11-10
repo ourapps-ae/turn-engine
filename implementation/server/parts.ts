@@ -1,5 +1,5 @@
 // The interfaces the turn engine drives or composes, as it needs them. Each is provided by another
-// component (see interfaces/required/*.json); state values are opaque to the engine and must be
+// component (see interfaces/required-*.json); state values are opaque to the engine and must be
 // JSON-serialisable. Operations are pure: they return new state and never change their input.
 
 export type Rng = () => number;

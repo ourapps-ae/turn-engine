@@ -23,10 +23,10 @@ Settings (all optional): `decisionSeconds` (empty reads the house rules `timing.
 - `implementation/server/parts.ts` -> `components/turn-engine/server/parts.ts`
 
 Dependencies: none.
-`tools.lock.json` pins verification tools: node 26.5.0. Licence wording remains deferred.
+`tools.lock.json` pins verification tools: node 26.5.0. Licence: `Apache-2.0` (`LICENCE`, `NOTICE`).
 
 ## Provided interfaces
-- `interfaces/game-adapter.json` defines `game-adapter` (ae/game-adapter) version 1.0.0.
+- `interfaces/game-adapter.json` defines `game-adapter` (ae/game-adapter) version 1.0.0: an OpenRPC 1.3.2 document, one method per function (a member of a created object is `<Type>.<member>`), with parameter, result and data types as JSON Schema 2020-12 (`components.schemas`) and thrown errors under `errors`.
 
 ## Required interfaces
 - `game-rules` (ae/game-rules) version 1.0.0, supplied by the recipe or application.
@@ -38,6 +38,8 @@ Dependencies: none.
 - `computer-players` (ae/computer-players) version 1.0.0, supplied by the recipe or application (optional; may stay unconnected).
 - `round-history` (ae/round-history) version 1.0.0, supplied by the recipe or application.
 - `rules-settings` (ae/rules-settings) version 1.0.0, supplied by the recipe or application.
+
+Each `interfaces/required-<id>.json` is a byte copy of the providing component's document.
 
 ## Integration
 Build the adapter with `createGameAdapter(parts, settings)` from `implementation/server/adapter.ts`, where `parts` (`implementation/server/parts.ts`) holds one component for each required interface: `{rules, seating, clock, views, presence, tournament, computers, history, settings}`. `computers` may be left out: the engine then uses `implementation/server/no-computers.ts` (nobody plays for a computer, `addBot` is refused and not offered, no seat is filled). The manifest marks the `computer-players` requirement `optional: true`, so a design without computer players leaves it unconnected and the engine runs on this stand-in. Hand the adapter to `createRoomClass` from realtime-rooms. Wire actions: `start`, `addBot`, `kick`, `leave`, `sitOut`, `return`, `pause`, `resume`, `cancel`, `newGame`, `rebuy`, plus any move `game-rules.parseMove` accepts. The view carries `players` (each with the game's redacted record), `round`, `game` (the game's own public view), `legal` (engine actions and the game's legal moves), `prompt`, `rebuyOffers`, `holds` and `history`. The engine state is JSON-serialisable and every call is pure. Error codes (all answered with HTTP status 400, 409 or 422): `badName badRequest roomFull staleVersion badToken notYourTurn wrongPhase notEnoughPlayers badAmount badTarget notAllowed paused unknownPlayer`; a code a game reports that is not in this list (`asErrorCode` in `engine.ts`) is sent as `notAllowed`, so every refusal holdem-rules can give (`unknownPlayer`, `notEnoughPlayers` included) is representable. The engine decides which clocks run: the action clock runs unless the table is paused or held, and the level clock also stops while `tournament.levelClockRuns(t)` is false (a rebuy offer is open); both are passed to game-clock `advance(clock, now, {action, level})`. `presence.setManualPause(state, on, now)` receives the time.

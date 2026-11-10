@@ -1,5 +1,5 @@
 // Fakes for every interface the turn engine requires, written for these tests only: small, pure,
-// and honest to the contract in interfaces/required/*.json. Nothing here knows poker.
+// and honest to the members the `Parts` schema of interfaces/game-adapter.json names. Nothing here knows poker.
 import type { ClockApi, ComputersApi, GameRules, HistoryApi, HiddenRecord, Hold, Parts, PresenceApi, PrivateViewsApi, RulesSettingsApi, SeatingApi, TournamentApi } from "../../implementation/server/parts.ts";
 
 export const PRESENCE_MS = 30_000;

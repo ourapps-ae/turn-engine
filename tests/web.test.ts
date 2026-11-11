@@ -87,7 +87,8 @@ test("starting needs enough people and a person; the starter becomes host; every
   const w = world();
   w.join("a", "Ada");
   assert.equal(code(w.act("a", { type: "start" })), "notEnoughPlayers");
-  assert.equal(w.view("a").promptKey, "lobbyWaiting");
+  const waiting = w.view("a");
+  assert.deepEqual([waiting.promptKey, waiting.promptArgs, waiting.prompt], ["lobbyWaitingOne", [1], "Waiting for 1 more player."]);
   ok(w.act("a", { type: "addBot" }));
   assert.equal(code(w.act("computer-ann", { type: "start" })), "notAllowed");
   ok(w.act("a", { type: "start" }));

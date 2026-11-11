@@ -659,7 +659,11 @@ export function createEngine(parts: Parts, input: Partial<EngineSettings> = {}) 
     const hostName = name(seating.hostOf(g.seats));
     switch (g.status) {
       case "lobby":
-        if (!seating.isEnough(g.seats)) return p("lobbyWaiting", `Waiting for players: ${seating.minimumPlayers()} needed.`, seating.minimumPlayers());
+        if (!seating.isEnough(g.seats)) {
+          // How many more people the game needs before it can start: one key for one more, another for several.
+          const more = seating.minimumPlayers() - seating.count(g.seats);
+          return more === 1 ? p("lobbyWaitingOne", "Waiting for 1 more player.", more) : p("lobbyWaiting", `Waiting for ${more} more players.`, more);
+        }
         return p("lobbyReady", "Anyone can start the game.");
       case "completed": {
         const w = tournament.winner(g.tournament);

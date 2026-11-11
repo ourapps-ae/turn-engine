@@ -2,6 +2,6 @@
   "format": 1,
   "dependencies": [],
   "tools": {
-    "node": "26.5.0"
+    "node": "26.5"
   }
 }

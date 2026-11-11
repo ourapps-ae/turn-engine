@@ -609,7 +609,8 @@ export function createEngine(parts: Parts, input: Partial<EngineSettings> = {}) 
     const legal: Legal = { ...NONE };
     const human = !me.computer;
     if (g.status === "lobby") {
-      legal.start = human && seating.isEnough(g.seats);
+      // With computers filling empty seats at the start (computer-players mode fill-empty), one person can start alone.
+      legal.start = human && seating.isEnough(computers.fill(g.seats).state);
       legal.addBot = human && seating.canAddComputer(g.seats, me.id).ok && computers.add(g.seats, me.id).ok;
       legal.kick = human && seating.list(g.seats).some((s) => seating.remove(g.seats, me.id, s.id).ok);
       legal.leave = true;
@@ -659,6 +660,8 @@ export function createEngine(parts: Parts, input: Partial<EngineSettings> = {}) 
     const hostName = name(seating.hostOf(g.seats));
     switch (g.status) {
       case "lobby":
+        const filling = seating.people(g.seats).length > 0 ? computers.fill(g.seats).added.length : 0;
+        if (filling > 0 && seating.isEnough(computers.fill(g.seats).state)) return p("lobbyFill", `Start the game: computer players take the ${filling} empty seats.`, filling);
         if (!seating.isEnough(g.seats)) {
           // How many more people the game needs before it can start: one key for one more, another for several.
           const more = seating.minimumPlayers() - seating.count(g.seats);

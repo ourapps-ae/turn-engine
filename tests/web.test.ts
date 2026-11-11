@@ -125,6 +125,22 @@ test("fill-empty seats computers on start", () => {
   assert.equal(w.view("a").players.filter((p) => p.isBot).length, 1);
 });
 
+test("fill-empty: one person alone may start, and the computers fill the table", () => {
+  const w = world({ fill: true, maximum: 4 });
+  w.join("a", "Ada");
+  const before = w.view("a");
+  assert.equal(before.legal.start, true);
+  assert.deepEqual([before.promptKey, before.promptArgs], ["lobbyFill", [3]]);
+  ok(w.act("a", { type: "start" }));
+  assert.equal(w.adapter.members(w.state).length, 4);
+  assert.equal(w.view("a").status, "running");
+  // without fill-empty a lone person still waits
+  const plain = world({ maximum: 4 });
+  plain.join("a", "Ada");
+  assert.equal(plain.view("a").legal.start, false);
+  assert.equal(code(plain.act("a", { type: "start" })), "notEnoughPlayers");
+});
+
 test("unknown and malformed actions are refused at parse time", () => {
   const w = world();
   for (const bad of [null, {}, { type: "nope" }, { type: "add" }, { type: "add", n: "1" }, { type: "rebuy" }, { type: "kick", playerId: 3 }]) assert.equal(code(w.adapter.parseAction(bad)), "badRequest", JSON.stringify(bad));

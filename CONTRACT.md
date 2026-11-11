@@ -23,7 +23,7 @@ Settings (all optional): `decisionSeconds` (empty reads the house rules `timing.
 - `implementation/server/parts.ts` -> `components/turn-engine/server/parts.ts`
 
 Dependencies: none.
-`tools.lock.json` pins verification tools: node 26.5.0. Licence: `Apache-2.0` (`LICENCE`, `NOTICE`).
+`tools.lock.json` pins verification tools: node 26.5. Licence: `Apache-2.0` (`LICENCE`, `NOTICE`).
 
 ## Provided interfaces
 - `interfaces/game-adapter.json` defines `game-adapter` (ae/game-adapter) version 1.0.0: an OpenRPC 1.3.2 document, one method per function (a member of a created object is `<Type>.<member>`), with parameter, result and data types as JSON Schema 2020-12 (`components.schemas`) and thrown errors under `errors`.
@@ -53,7 +53,7 @@ No service is deployed. The room (realtime-rooms) stores the state and sets the 
 ## Verification
 `node --test tests/web.test.ts` runs the whole adapter against a trivial two-player counting game and small fakes for every required interface (`tests/fakes/parts.ts`, no poker): joining and names, start rules, computers, turn order and every error code, countdowns, acting for absent players and for sat-out players who return, computer pacing, automatic steps and result pauses, `nextWake`, manual and automatic pauses, holds, leaving and returning, cancellation (including by a watcher), the end and the new lobby, stale lobbies, rebuy offers taken, declined and timed out, computer rebuys, views and redaction, restore, settings and the runnable consumer. The suite also checks every refusal code a game may give, that the pause passes the time to presence, a table with no computer-players part, and that the level clock is frozen exactly while a rebuy offer is open. `authoring/integration.test.ts` (not packaged) runs the engine with the real seating, tournament and computer-players components. `authoring/integration-real.test.ts` (not packaged) plays a complete scripted counting-game tournament and, when holdem-rules offers the game-rules operations, a full poker hand, over the real implementation of every required component; a provider missing declared operations makes it skip with the list (`FILL_GAPS_WITH_FAKES=1` fills such a gap with the test fakes).
 
-- `node --test tests/web.test.ts` (web, required-local; tools: node 26.5.0)
+- `node --test tests/web.test.ts` (web, required-local; tools: node 26.5)
 
 ## Scenarios and presentation
 Two people and a computer sit; the host starts; a counting game is played one move at a time; the loser of enough rounds is offered a rebuy, declines by silence, and the other is crowned; thirty seconds later the room is a lobby again. A person's connection drops mid-round: the table keeps running, the person is acted for when their countdown ends, and their next turns are acted for as soon as the settle ends. The host goes away between rounds: everything pauses until the host is back.

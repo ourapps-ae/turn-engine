@@ -1,6 +1,6 @@
 {
   "name": "turn-engine",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "title": "Turn engine",
   "description": "The game-independent engine behind a multiplayer table: lifecycle, checked actions with error codes, turn order, scheduled steps, and the GameAdapter that realtime-rooms calls. It drives a game through the game-rules interface and composes seating, clock, views, presence, tournament, computer players, history and settings by injection.",
   "facilities": [

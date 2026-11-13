@@ -37,6 +37,11 @@
         {
           "$ref": "#/components/errors/BadSettings"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -50,7 +55,12 @@
           "$ref": "#/components/schemas/ComputersPart"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.create",
@@ -71,7 +81,12 @@
         "schema": {
           "$ref": "#/components/schemas/EngineState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.restore",
@@ -102,6 +117,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/UnsupportedState"
+        }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
         }
       ]
     },
@@ -154,7 +174,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.members",
@@ -190,7 +215,12 @@
             "additionalProperties": false
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.summary",
@@ -231,7 +261,12 @@
           ],
           "additionalProperties": false
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.clearSpectators",
@@ -251,7 +286,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.join",
@@ -349,7 +389,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.parseAction",
@@ -417,7 +462,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.apply",
@@ -502,6 +552,11 @@
         {
           "$ref": "#/components/errors/NoOutcome"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -550,7 +605,12 @@
           ],
           "additionalProperties": false
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.connection",
@@ -646,7 +706,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.advance",
@@ -698,6 +763,11 @@
         {
           "$ref": "#/components/errors/NoOutcome"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -721,7 +791,12 @@
             "null"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "GameAdapter.view",
@@ -783,7 +858,12 @@
         "schema": {
           "$ref": "#/components/schemas/View"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     }
   ],
   "components": {
@@ -2236,5 +2316,8 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "server": "server/index.ts"
   }
 }

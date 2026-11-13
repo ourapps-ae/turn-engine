@@ -13,6 +13,12 @@
       "template": false
     },
     {
+      "destination": "components/turn-engine/server/index.ts",
+      "executable": false,
+      "source": "implementation/server/index.ts",
+      "template": false
+    },
+    {
       "destination": "components/turn-engine/server/no-computers.ts",
       "executable": false,
       "source": "implementation/server/no-computers.ts",
@@ -31,6 +37,7 @@
     "writes": [
       "components/turn-engine/server/adapter.ts",
       "components/turn-engine/server/engine.ts",
+      "components/turn-engine/server/index.ts",
       "components/turn-engine/server/no-computers.ts",
       "components/turn-engine/server/parts.ts"
     ]
@@ -151,6 +158,10 @@
     {
       "executable": false,
       "path": "implementation/server/engine.ts"
+    },
+    {
+      "executable": false,
+      "path": "implementation/server/index.ts"
     },
     {
       "executable": false,

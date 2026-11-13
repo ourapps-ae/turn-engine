@@ -30,6 +30,11 @@
         {
           "$ref": "#/components/errors/BadNow"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -70,6 +75,11 @@
         {
           "$ref": "#/components/errors/BadNow"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -103,6 +113,11 @@
         {
           "$ref": "#/components/errors/BadNow"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -135,6 +150,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/BadClockName"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     },
@@ -179,6 +199,11 @@
         {
           "$ref": "#/components/errors/BadClockName"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -208,6 +233,11 @@
         {
           "$ref": "#/components/errors/BadOnTimeout"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -229,7 +259,12 @@
           "type": "integer",
           "minimum": 1000
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "after",
@@ -262,6 +297,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/BadMs"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     },
@@ -314,6 +354,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/BadMs"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     },
@@ -370,6 +415,11 @@
         {
           "$ref": "#/components/errors/BadMs"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -404,7 +454,12 @@
         "schema": {
           "$ref": "#/components/schemas/Timer"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "delay",
@@ -437,6 +492,11 @@
         {
           "$ref": "#/components/errors/BadMs"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -468,7 +528,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "remainingMs",
@@ -503,7 +568,12 @@
           ],
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "settleLeftMs",
@@ -531,7 +601,12 @@
           "type": "number",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "timeoutAction",
@@ -563,7 +638,12 @@
             "none"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "nextWake",
@@ -612,7 +692,12 @@
           ],
           "description": "Epoch milliseconds."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "remaining",
@@ -663,7 +748,12 @@
           ],
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "endsAt",
@@ -706,7 +796,12 @@
           ],
           "description": "Epoch milliseconds."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "formatClock",
@@ -727,7 +822,12 @@
           "type": "string",
           "pattern": "^[0-9]+:[0-5][0-9]$"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     }
   ],
   "components": {
@@ -889,5 +989,11 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "web": "web/index.ts",
+    "server": "server/index.ts",
+    "android": "android/src/main/java",
+    "apple": "apple/Sources"
   }
 }

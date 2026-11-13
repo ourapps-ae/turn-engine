@@ -48,6 +48,11 @@
         {
           "$ref": "#/components/errors/BadOpening"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -61,7 +66,12 @@
           "$ref": "#/components/schemas/HoldemSettings"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "DEFAULT_PACING",
@@ -74,7 +84,12 @@
           "$ref": "#/components/schemas/Pacing"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "ACTION_TYPES",
@@ -97,7 +112,12 @@
           }
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.settings",
@@ -110,7 +130,12 @@
           "$ref": "#/components/schemas/HoldemSettings"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.pacing",
@@ -123,7 +148,12 @@
           "$ref": "#/components/schemas/Pacing"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.lower",
@@ -136,7 +166,12 @@
           "$ref": "#/components/schemas/Holdem"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.optionNames",
@@ -153,7 +188,12 @@
           "maxItems": 0
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.newRound",
@@ -247,6 +287,11 @@
         {
           "$ref": "#/components/errors/LedgerMismatch"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -284,7 +329,12 @@
         "schema": {
           "$ref": "#/components/schemas/RoundPhase"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.parseMove",
@@ -335,7 +385,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.act",
@@ -397,6 +452,11 @@
         {
           "$ref": "#/components/errors/LedgerMismatch"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -424,7 +484,12 @@
         "schema": {
           "$ref": "#/components/schemas/Action"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.step",
@@ -472,6 +537,11 @@
         {
           "$ref": "#/components/errors/LedgerMismatch"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -499,7 +569,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.voidRound",
@@ -551,6 +626,11 @@
         {
           "$ref": "#/components/errors/LedgerMismatch"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -585,7 +665,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.records",
@@ -608,7 +693,12 @@
             "$ref": "#/components/schemas/HiddenRecord"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.publicView",
@@ -649,7 +739,12 @@
         "schema": {
           "$ref": "#/components/schemas/PublicView"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.legal",
@@ -692,7 +787,12 @@
         "schema": {
           "$ref": "#/components/schemas/Legal"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "GameRules.prompt",
@@ -729,7 +829,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "createHoldem",
@@ -778,6 +883,11 @@
         {
           "$ref": "#/components/errors/BadOpening"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -791,7 +901,12 @@
           "$ref": "#/components/schemas/HoldemSettings"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.parseAction",
@@ -842,7 +957,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.newHand",
@@ -908,7 +1028,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.legalActions",
@@ -935,7 +1060,12 @@
         "schema": {
           "$ref": "#/components/schemas/Legal"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.apply",
@@ -983,7 +1113,12 @@
         "schema": {
           "$ref": "#/components/schemas/Step"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.autoAction",
@@ -1010,7 +1145,12 @@
         "schema": {
           "$ref": "#/components/schemas/Action"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.runoutStep",
@@ -1030,7 +1170,12 @@
         "schema": {
           "$ref": "#/components/schemas/Step"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.isHandOver",
@@ -1050,7 +1195,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.settle",
@@ -1070,7 +1220,12 @@
         "schema": {
           "$ref": "#/components/schemas/Step"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.voidHand",
@@ -1090,7 +1245,12 @@
         "schema": {
           "$ref": "#/components/schemas/Step"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.view",
@@ -1120,7 +1280,12 @@
         "schema": {
           "$ref": "#/components/schemas/RulesView"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.stacks",
@@ -1144,7 +1309,12 @@
             "minimum": 0
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Holdem.attachLedger",
@@ -1176,6 +1346,11 @@
         {
           "$ref": "#/components/errors/LedgerMismatch"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -1197,7 +1372,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "awardPot",
@@ -1266,7 +1446,12 @@
         "schema": {
           "$ref": "#/components/schemas/Award"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "showdownOf",
@@ -1328,7 +1513,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "stepFor",
@@ -1353,7 +1543,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "snap",
@@ -1401,7 +1596,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "presets",
@@ -1462,7 +1662,12 @@
         "schema": {
           "$ref": "#/components/schemas/Presets"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "adjust",
@@ -1497,7 +1702,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "isAllowedAmount",
@@ -1524,7 +1734,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "canSlide",
@@ -1552,7 +1767,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "betKind",
@@ -1585,7 +1805,12 @@
             "raise"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "callIsAllIn",
@@ -1614,7 +1839,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "betIsAllIn",
@@ -1651,7 +1881,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     }
   ],
   "components": {
@@ -3754,5 +3989,11 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "web": "web/index.ts",
+    "server": "server/index.ts",
+    "android": "android/src/main/java",
+    "apple": "apple/Sources"
   }
 }

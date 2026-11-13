@@ -31,7 +31,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "find",
@@ -66,7 +71,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "addParticipant",
@@ -116,7 +126,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "removeParticipant",
@@ -143,7 +158,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "setHost",
@@ -172,7 +192,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "setCounts",
@@ -207,7 +232,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "setManualPause",
@@ -242,7 +272,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "seen",
@@ -278,7 +313,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "setLive",
@@ -321,7 +361,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "away",
@@ -349,7 +394,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "recordMiss",
@@ -377,7 +427,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "refresh",
@@ -420,7 +475,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "isPaused",
@@ -439,7 +499,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "pauseReasons",
@@ -461,7 +526,12 @@
             "$ref": "#/components/schemas/PauseReason"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "abandoned",
@@ -496,7 +566,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "nextCheck",
@@ -527,7 +602,12 @@
           ],
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "silentIds",
@@ -565,7 +645,12 @@
             "type": "string"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "absentIds",
@@ -587,7 +672,12 @@
             "type": "string"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "sitOut",
@@ -615,7 +705,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "returned",
@@ -651,7 +746,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "leftGame",
@@ -679,7 +779,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "isConnected",
@@ -706,7 +811,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "isLive",
@@ -733,7 +843,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "isSittingOut",
@@ -760,7 +875,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "misses",
@@ -788,7 +908,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "lastSeen",
@@ -816,7 +941,12 @@
           "type": "integer",
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "isManualPause",
@@ -835,7 +965,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "pausedSince",
@@ -858,7 +993,12 @@
           ],
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "setHold",
@@ -922,7 +1062,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "isHeld",
@@ -941,7 +1086,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "holds",
@@ -963,7 +1113,12 @@
             "$ref": "#/components/schemas/Hold"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "refreshFor",
@@ -1005,7 +1160,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "restart",
@@ -1034,7 +1194,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "nextSilence",
@@ -1065,7 +1230,12 @@
           ],
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "validateSettings",
@@ -1088,6 +1258,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/SettingsRangeError"
+        }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
         }
       ]
     },
@@ -1113,6 +1288,11 @@
         {
           "$ref": "#/components/errors/SettingsRangeError"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -1124,7 +1304,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.register",
@@ -1171,7 +1356,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.unregister",
@@ -1198,7 +1388,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.restart",
@@ -1227,7 +1422,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.seen",
@@ -1263,7 +1463,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.setLive",
@@ -1306,7 +1511,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.away",
@@ -1334,7 +1544,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.sitOut",
@@ -1362,7 +1577,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.returned",
@@ -1398,7 +1618,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.leftGame",
@@ -1426,7 +1651,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.recordMiss",
@@ -1454,7 +1684,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.isConnected",
@@ -1481,7 +1716,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.isLive",
@@ -1508,7 +1748,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.isSittingOut",
@@ -1535,7 +1780,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.misses",
@@ -1563,7 +1813,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.lastSeen",
@@ -1591,7 +1846,12 @@
           "type": "integer",
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.setManualPause",
@@ -1626,7 +1886,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.setHold",
@@ -1690,7 +1955,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.isPaused",
@@ -1709,7 +1979,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.pauseReasons",
@@ -1731,7 +2006,12 @@
             "$ref": "#/components/schemas/PauseReason"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.isManualPause",
@@ -1750,7 +2030,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.pausedSince",
@@ -1773,7 +2058,12 @@
           ],
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.isHeld",
@@ -1792,7 +2082,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.holds",
@@ -1814,7 +2109,12 @@
             "$ref": "#/components/schemas/Hold"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.refresh",
@@ -1849,7 +2149,12 @@
         "schema": {
           "$ref": "#/components/schemas/PresenceState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "PresenceApi.nextWake",
@@ -1872,7 +2177,12 @@
           ],
           "description": "Milliseconds since the epoch."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     }
   ],
   "components": {
@@ -2136,5 +2446,8 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "server": "server/index.ts"
   }
 }

@@ -30,6 +30,11 @@
         {
           "$ref": "#/components/errors/BadMaxRounds"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -55,6 +60,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/BadMaxRounds"
+        }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
         }
       ]
     },
@@ -112,6 +122,11 @@
         {
           "$ref": "#/components/errors/NotRising"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -135,7 +150,12 @@
             "$ref": "#/components/schemas/PlainRound"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "createHistoryApi",
@@ -161,6 +181,11 @@
         {
           "$ref": "#/components/errors/BadMaxRounds"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -174,7 +199,12 @@
           "$ref": "#/components/schemas/HistorySettings"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "HistoryApi.create",
@@ -186,7 +216,12 @@
         "schema": {
           "$ref": "#/components/schemas/History"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "HistoryApi.push",
@@ -242,6 +277,11 @@
         {
           "$ref": "#/components/errors/NotRising"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -265,7 +305,12 @@
             "$ref": "#/components/schemas/PlainRound"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "checkEntry",
@@ -310,6 +355,11 @@
         },
         {
           "$ref": "#/components/errors/BadExtra"
+        }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
         }
       ]
     },
@@ -367,6 +417,11 @@
         {
           "$ref": "#/components/errors/NotRising"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -416,6 +471,11 @@
         {
           "$ref": "#/components/errors/NotRising"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -436,7 +496,12 @@
         "schema": {
           "$ref": "#/components/schemas/History"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "recentRounds",
@@ -473,6 +538,11 @@
         {
           "$ref": "#/components/errors/BadCount"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -507,7 +577,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "totalsByPlayer",
@@ -548,7 +623,12 @@
           },
           "description": "Player id to totals."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "exportRounds",
@@ -568,7 +648,12 @@
         "schema": {
           "type": "string"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "importRounds",
@@ -637,6 +722,11 @@
         {
           "$ref": "#/components/errors/NotRising"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -675,7 +765,15 @@
           ],
           "additionalProperties": false
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "swift"
+        },
+        {
+          "name": "kotlin"
+        }
+      ]
     },
     {
       "name": "RoundHistory.chipsWon",
@@ -691,7 +789,15 @@
             "minimum": 0
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "swift"
+        },
+        {
+          "name": "kotlin"
+        }
+      ]
     }
   ],
   "components": {
@@ -976,5 +1082,10 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "server": "server/index.ts",
+    "android": "android/src/main/java",
+    "apple": "apple/Sources"
   }
 }

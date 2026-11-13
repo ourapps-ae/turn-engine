@@ -60,6 +60,11 @@
         {
           "$ref": "#/components/errors/BadTiebreak"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -92,6 +97,11 @@
         {
           "$ref": "#/components/errors/BadTiebreak"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -105,7 +115,12 @@
           "$ref": "#/components/schemas/TournamentSettings"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.create",
@@ -117,7 +132,12 @@
         "schema": {
           "$ref": "#/components/schemas/TournamentState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.start",
@@ -137,7 +157,12 @@
         "schema": {
           "$ref": "#/components/schemas/TournamentState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.entry",
@@ -171,7 +196,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.activeIds",
@@ -194,7 +224,12 @@
             "type": "string"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.isActive",
@@ -221,7 +256,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.balance",
@@ -249,7 +289,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.rebuysUsed",
@@ -277,7 +322,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.place",
@@ -308,7 +358,12 @@
           ],
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.ledger",
@@ -326,7 +381,12 @@
       "result": {
         "name": "ledger",
         "schema": {}
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.withLedger",
@@ -351,7 +411,12 @@
         "schema": {
           "$ref": "#/components/schemas/TournamentState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.chipsIssued",
@@ -372,7 +437,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.startingStack",
@@ -385,7 +455,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.rebuyStack",
@@ -398,7 +473,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.levelAt",
@@ -420,7 +500,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.clockInfo",
@@ -439,7 +524,12 @@
       "result": {
         "name": "description",
         "schema": {}
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.roundStarted",
@@ -459,7 +549,12 @@
         "schema": {
           "$ref": "#/components/schemas/TournamentState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.roundSettled",
@@ -509,7 +604,12 @@
         "schema": {
           "$ref": "#/components/schemas/TournamentState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.offers",
@@ -532,7 +632,12 @@
             "$ref": "#/components/schemas/Offer"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.hasOffers",
@@ -552,7 +657,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.levelClockRuns",
@@ -572,7 +682,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.offerFor",
@@ -606,7 +721,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.dueOffer",
@@ -656,7 +776,12 @@
           ],
           "additionalProperties": false
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.nextOfferDue",
@@ -686,7 +811,12 @@
             "null"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.resolve",
@@ -753,7 +883,12 @@
             }
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.conclude",
@@ -780,7 +915,12 @@
         "schema": {
           "$ref": "#/components/schemas/Concluded"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.cancel",
@@ -800,7 +940,12 @@
         "schema": {
           "$ref": "#/components/schemas/TournamentState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.isFinished",
@@ -820,7 +965,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.standings",
@@ -843,7 +993,12 @@
             "$ref": "#/components/schemas/Standing"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Tournament.winner",
@@ -866,7 +1021,12 @@
             "null"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "exportAll",
@@ -886,7 +1046,12 @@
         "schema": {
           "type": "string"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "importAll",
@@ -926,6 +1091,11 @@
         {
           "$ref": "#/components/errors/ImportOrphanOffer"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -959,7 +1129,12 @@
             "$ref": "#/components/schemas/ResultRow"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "headingKey",
@@ -983,7 +1158,12 @@
             "standings"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     }
   ],
   "components": {
@@ -1474,5 +1654,11 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "web": "web/index.ts",
+    "server": "server/index.ts",
+    "android": "android/src/main/java",
+    "apple": "apple/Sources"
   }
 }

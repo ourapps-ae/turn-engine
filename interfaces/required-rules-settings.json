@@ -44,6 +44,11 @@
         {
           "$ref": "#/components/errors/UnusableSchema"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -85,6 +90,11 @@
         {
           "$ref": "#/components/errors/UnusableSchema"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -108,7 +118,12 @@
             "type": "string"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "getRule",
@@ -143,6 +158,11 @@
         {
           "$ref": "#/components/errors/NoRule"
         }
+      ],
+      "tags": [
+        {
+          "name": "typescript"
+        }
       ]
     },
     {
@@ -169,7 +189,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "ruleRows",
@@ -197,7 +222,12 @@
             "$ref": "#/components/schemas/Row"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "deepFreeze",
@@ -213,7 +243,12 @@
       "result": {
         "name": "value",
         "schema": {}
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "createRulesSettings",
@@ -231,7 +266,12 @@
         "schema": {
           "$ref": "#/components/schemas/RulesReader"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "RulesReader.rules",
@@ -242,7 +282,12 @@
         "name": "rules",
         "schema": {}
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "RulesReader.value",
@@ -261,7 +306,12 @@
       "result": {
         "name": "value",
         "schema": {}
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "RulesReader.has",
@@ -282,7 +332,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "typescript"
+        }
+      ]
     },
     {
       "name": "readSchema",
@@ -307,6 +362,11 @@
       "errors": [
         {
           "$ref": "#/components/errors/NotASchema"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     },
@@ -353,6 +413,11 @@
         {
           "$ref": "#/components/errors/NotASchema"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -398,6 +463,11 @@
         },
         {
           "$ref": "#/components/errors/NotASchema"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     },
@@ -447,6 +517,11 @@
         {
           "$ref": "#/components/errors/BadName"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -489,6 +564,11 @@
         },
         {
           "$ref": "#/components/errors/NotASchema"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     }
@@ -645,5 +725,9 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "web": "web/index.ts",
+    "server": "server/index.ts"
   }
 }

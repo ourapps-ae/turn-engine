@@ -43,6 +43,11 @@
         {
           "$ref": "#/components/errors/BadFlags"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -75,6 +80,11 @@
         {
           "$ref": "#/components/errors/BadFlags"
         }
+      ],
+      "tags": [
+        {
+          "name": "server"
+        }
       ]
     },
     {
@@ -104,7 +114,12 @@
           "type": "array",
           "items": {}
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.settings",
@@ -117,7 +132,12 @@
           "$ref": "#/components/schemas/SeatingSettings"
         }
       },
-      "x-ourapps-property": true
+      "x-ourapps-property": true,
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.create",
@@ -129,7 +149,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.validName",
@@ -147,7 +172,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.list",
@@ -170,7 +200,12 @@
             "$ref": "#/components/schemas/Seat"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.find",
@@ -205,7 +240,12 @@
           ],
           "description": "undefined (absent) when the id has no seat."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.findByName",
@@ -240,7 +280,12 @@
           ],
           "description": "undefined (absent) when the name has no seat."
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.count",
@@ -261,7 +306,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.people",
@@ -284,7 +334,12 @@
             "$ref": "#/components/schemas/Seat"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.computers",
@@ -307,7 +362,12 @@
             "$ref": "#/components/schemas/Seat"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.isFull",
@@ -327,7 +387,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.isEnough",
@@ -347,7 +412,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.join",
@@ -395,7 +465,12 @@
         "schema": {
           "$ref": "#/components/schemas/Outcome"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.setHost",
@@ -425,7 +500,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.hostOf",
@@ -448,7 +528,12 @@
             "null"
           ]
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.minimumPlayers",
@@ -461,7 +546,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.maximumPlayers",
@@ -474,7 +564,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.isHost",
@@ -501,7 +596,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.leave",
@@ -528,7 +628,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.leaveRunning",
@@ -555,7 +660,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.mayReturn",
@@ -582,7 +692,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.returned",
@@ -609,7 +724,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.remove",
@@ -644,7 +764,12 @@
         "schema": {
           "$ref": "#/components/schemas/Outcome"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.canStart",
@@ -672,7 +797,12 @@
         "schema": {
           "$ref": "#/components/schemas/Outcome"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.canAddComputer",
@@ -700,7 +830,12 @@
         "schema": {
           "$ref": "#/components/schemas/Outcome"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.assign",
@@ -727,7 +862,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.compact",
@@ -747,7 +887,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.retain",
@@ -774,7 +919,12 @@
         "schema": {
           "$ref": "#/components/schemas/SeatingState"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.nextOccupied",
@@ -813,7 +963,12 @@
           "type": "integer",
           "minimum": 0
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "Seating.distance",
@@ -843,7 +998,12 @@
           "type": "integer",
           "minimum": 1
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "exportAll",
@@ -863,7 +1023,12 @@
         "schema": {
           "type": "string"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "server"
+        }
+      ]
     },
     {
       "name": "importAll",
@@ -899,6 +1064,11 @@
         },
         {
           "$ref": "#/components/errors/ImportHost"
+        }
+      ],
+      "tags": [
+        {
+          "name": "server"
         }
       ]
     },
@@ -946,7 +1116,12 @@
             "$ref": "#/components/schemas/SeatRow"
           }
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     },
     {
       "name": "canTakeSeat",
@@ -999,7 +1174,12 @@
         "schema": {
           "type": "boolean"
         }
-      }
+      },
+      "tags": [
+        {
+          "name": "web"
+        }
+      ]
     }
   ],
   "components": {
@@ -1324,5 +1504,11 @@
         }
       }
     }
+  },
+  "x-ourapps-modules": {
+    "web": "web/index.ts",
+    "server": "server/index.ts",
+    "android": "android/src/main/java",
+    "apple": "apple/Sources"
   }
 }

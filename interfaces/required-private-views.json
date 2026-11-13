@@ -42,7 +42,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
+          "name": "server"
         }
       ]
     },
@@ -76,7 +76,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
+          "name": "server"
         }
       ]
     },
@@ -117,7 +117,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
+          "name": "server"
         }
       ]
     },
@@ -155,10 +155,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
-        },
-        {
-          "name": "swift"
+          "name": "web"
         },
         {
           "name": "kotlin"
@@ -199,7 +196,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
+          "name": "web"
         }
       ]
     },
@@ -230,7 +227,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
+          "name": "web"
         }
       ]
     },
@@ -262,9 +259,6 @@
       "tags": [
         {
           "name": "swift"
-        },
-        {
-          "name": "kotlin"
         }
       ]
     },
@@ -316,7 +310,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
+          "name": "web"
         }
       ]
     },
@@ -347,10 +341,7 @@
       },
       "tags": [
         {
-          "name": "typescript"
-        },
-        {
-          "name": "swift"
+          "name": "web"
         },
         {
           "name": "kotlin"
@@ -638,5 +629,11 @@
         "additionalProperties": false
       }
     }
+  },
+  "x-ourapps-modules": {
+    "web": "web/index.ts",
+    "server": "server/index.ts",
+    "android": "android/src/main/java",
+    "apple": "apple/Sources"
   }
 }

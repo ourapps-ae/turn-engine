@@ -4,7 +4,7 @@
   "kind": "component",
   "status": "example",
   "package": "ourapps-ae/turn-engine",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "ports": [
     {
       "id": "game-rules",
